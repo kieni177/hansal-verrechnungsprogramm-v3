@@ -1,0 +1,63 @@
+<div class="page-content fade-in">
+  <div class="page-header">
+    <div>
+      <h1>
+        <mat-icon class="header-icon">dashboard</mat-icon>
+        Übersicht
+      </h1>
+      <p class="text-secondary">Überblick über Ihre Geschäftskennzahlen</p>
+    </div>
+    <button
+      mat-raised-button
+      color="warn"
+      (click)="resetDatabase()"
+      [disabled]="isResetting">
+      <mat-icon>refresh</mat-icon>
+      {{ isResetting ? 'Wird zurückgesetzt...' : 'Datenbank zurücksetzen' }}
+    </button>
+  </div>
+
+  <mat-grid-list cols="3" rowHeight="180px" gutterSize="24px" class="dashboard-grid">
+    <mat-grid-tile>
+      <mat-card class="dashboard-card products-card">
+        <mat-card-header>
+          <div class="card-icon-wrapper products">
+            <mat-icon>inventory</mat-icon>
+          </div>
+        </mat-card-header>
+        <mat-card-content>
+          <div class="card-value">{{ counts.products }}</div>
+          <div class="card-label">Produkte</div>
+        </mat-card-content>
+      </mat-card>
+    </mat-grid-tile>
+
+    <mat-grid-tile>
+      <mat-card class="dashboard-card orders-card">
+        <mat-card-header>
+          <div class="card-icon-wrapper orders">
+            <mat-icon>shopping_cart</mat-icon>
+          </div>
+        </mat-card-header>
+        <mat-card-content>
+          <div class="card-value">{{ counts.orders }}</div>
+          <div class="card-label">Bestellungen</div>
+        </mat-card-content>
+      </mat-card>
+    </mat-grid-tile>
+
+    <mat-grid-tile>
+      <mat-card class="dashboard-card invoices-card">
+        <mat-card-header>
+          <div class="card-icon-wrapper invoices">
+            <mat-icon>receipt</mat-icon>
+          </div>
+        </mat-card-header>
+        <mat-card-content>
+          <div class="card-value">{{ counts.invoices }}</div>
+          <div class="card-label">Rechnungen</div>
+        </mat-card-content>
+      </mat-card>
+    </mat-grid-tile>
+  </mat-grid-list>
+</div>

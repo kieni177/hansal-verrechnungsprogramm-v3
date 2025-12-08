@@ -1,0 +1,166 @@
+.page-header {
+  margin-bottom: var(--spacing-lg);
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+
+  h1 {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 8px;
+
+    .header-icon {
+      font-size: 32px;
+      width: 32px;
+      height: 32px;
+      color: var(--primary-color);
+    }
+  }
+
+  p {
+    margin: 0;
+    font-size: 1rem;
+  }
+
+  button {
+    mat-icon {
+      margin-right: 8px;
+    }
+  }
+}
+
+.dashboard-grid {
+  margin-top: var(--spacing-lg);
+}
+
+.dashboard-card {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  border: none;
+  position: relative;
+  overflow: hidden;
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, var(--primary-color), var(--primary-light));
+  }
+
+  mat-card-header {
+    padding: 16px 16px 0;
+    display: flex;
+    justify-content: flex-end;
+
+    .card-icon-wrapper {
+      width: 56px;
+      height: 56px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: transform 0.3s ease;
+
+      mat-icon {
+        font-size: 32px;
+        width: 32px;
+        height: 32px;
+        color: white;
+      }
+
+      &.products {
+        background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+      }
+
+      &.orders {
+        background: linear-gradient(135deg, #2196f3, #1976d2);
+      }
+
+      &.invoices {
+        background: linear-gradient(135deg, var(--accent-color), var(--accent-dark));
+      }
+    }
+  }
+
+  mat-card-content {
+    padding: 16px;
+    text-align: left;
+
+    .card-value {
+      font-size: 2.5rem;
+      font-weight: 700;
+      color: var(--text-primary);
+      margin-bottom: 4px;
+      line-height: 1;
+    }
+
+    .card-label {
+      font-size: 0.875rem;
+      font-weight: 500;
+      color: var(--text-secondary);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+  }
+
+  &:hover {
+    .card-icon-wrapper {
+      transform: scale(1.1) rotate(5deg);
+    }
+  }
+}
+
+// Responsive design
+@media (max-width: 768px) {
+  .dashboard-grid {
+    display: grid !important;
+    grid-template-columns: 1fr;
+    gap: 16px;
+    height: auto !important;
+  }
+
+  .dashboard-card {
+    mat-card-content {
+      .card-value {
+        font-size: 2rem;
+      }
+    }
+  }
+}
+
+@media (max-width: 480px) {
+  .page-header h1 {
+    font-size: 1.5rem;
+
+    .header-icon {
+      font-size: 28px;
+      width: 28px;
+      height: 28px;
+    }
+  }
+
+  .dashboard-card {
+    mat-card-header .card-icon-wrapper {
+      width: 48px;
+      height: 48px;
+
+      mat-icon {
+        font-size: 28px;
+        width: 28px;
+        height: 28px;
+      }
+    }
+
+    mat-card-content .card-value {
+      font-size: 1.75rem;
+    }
+  }
+}

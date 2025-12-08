@@ -1,0 +1,75 @@
+<mat-toolbar color="primary">
+  <button mat-icon-button (click)="goBack()" aria-label="Zurück">
+    <mat-icon>arrow_back</mat-icon>
+  </button>
+  <span>Produktdetails</span>
+  <span class="spacer"></span>
+  <button mat-icon-button (click)="editProduct()" *ngIf="product" aria-label="Produkt bearbeiten">
+    <mat-icon>edit</mat-icon>
+  </button>
+</mat-toolbar>
+
+<div class="container">
+  <div *ngIf="loading" class="loading-spinner">
+    <mat-spinner diameter="50"></mat-spinner>
+  </div>
+
+  <mat-card *ngIf="!loading && product">
+    <mat-card-header>
+      <mat-card-title>{{ product.name }}</mat-card-title>
+    </mat-card-header>
+
+    <mat-card-content>
+      <div class="detail-grid">
+        <div class="detail-item">
+          <div class="label">
+            <mat-icon>description</mat-icon>
+            <span>Beschreibung</span>
+          </div>
+          <div class="value">{{ product.description || 'Keine Beschreibung' }}</div>
+        </div>
+
+        <mat-divider></mat-divider>
+
+        <div class="detail-item">
+          <div class="label">
+            <mat-icon>euro</mat-icon>
+            <span>Preis</span>
+          </div>
+          <div class="value price">€{{ product.price | number:'1.2-2' }}</div>
+        </div>
+
+        <mat-divider></mat-divider>
+
+        <div class="detail-item">
+          <div class="label">
+            <mat-icon>inventory_2</mat-icon>
+            <span>Lagerbestand</span>
+          </div>
+          <div class="value">{{ product.stockQuantity }} g</div>
+        </div>
+
+        <mat-divider *ngIf="product.id"></mat-divider>
+
+        <div class="detail-item" *ngIf="product.id">
+          <div class="label">
+            <mat-icon>tag</mat-icon>
+            <span>Produkt-ID</span>
+          </div>
+          <div class="value">{{ product.id }}</div>
+        </div>
+      </div>
+    </mat-card-content>
+
+    <mat-card-actions>
+      <button mat-raised-button color="primary" (click)="editProduct()">
+        <mat-icon>edit</mat-icon>
+        Produkt bearbeiten
+      </button>
+      <button mat-button (click)="goBack()">
+        <mat-icon>arrow_back</mat-icon>
+        Zurück zur Liste
+      </button>
+    </mat-card-actions>
+  </mat-card>
+</div>

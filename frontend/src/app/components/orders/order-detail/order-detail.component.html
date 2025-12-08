@@ -1,0 +1,144 @@
+<mat-toolbar color="primary">
+  <button mat-icon-button (click)="goBack()" aria-label="Zurück">
+    <mat-icon>arrow_back</mat-icon>
+  </button>
+  <mat-icon class="toolbar-icon">shopping_cart</mat-icon>
+  <span>Bestelldetails</span>
+  <span class="spacer"></span>
+  <button mat-icon-button (click)="editOrder()" *ngIf="order" aria-label="Bestellung bearbeiten">
+    <mat-icon>edit</mat-icon>
+  </button>
+</mat-toolbar>
+
+<div class="container">
+  <div *ngIf="loading" class="loading-spinner">
+    <mat-spinner diameter="50"></mat-spinner>
+  </div>
+
+  <div *ngIf="!loading && order" class="content">
+    <!-- Order Header -->
+    <mat-card class="header-card">
+      <mat-card-header>
+        <mat-card-title>
+          Bestellung #{{ order.id }}
+          <mat-chip [color]="getStatusColor(order.status)" class="status-chip">
+            {{ order.status }}
+          </mat-chip>
+        </mat-card-title>
+        <mat-card-subtitle *ngIf="order.orderDate">
+          Bestelldatum: {{ order.orderDate | date:'medium' }}
+        </mat-card-subtitle>
+      </mat-card-header>
+    </mat-card>
+
+    <!-- Customer Information -->
+    <mat-card>
+      <mat-card-header>
+        <mat-card-title>
+          <mat-icon>person</mat-icon>
+          Kundeninformationen
+        </mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <div class="detail-grid">
+          <div class="detail-item">
+            <div class="label">
+              <mat-icon>person</mat-icon>
+              <span>Name</span>
+            </div>
+            <div class="value">{{ order.customerName }}</div>
+          </div>
+
+          <mat-divider *ngIf="order.customerPhone"></mat-divider>
+
+          <div class="detail-item" *ngIf="order.customerPhone">
+            <div class="label">
+              <mat-icon>phone</mat-icon>
+              <span>Telefon</span>
+            </div>
+            <div class="value">{{ order.customerPhone }}</div>
+          </div>
+
+          <mat-divider *ngIf="order.customerAddress"></mat-divider>
+
+          <div class="detail-item" *ngIf="order.customerAddress">
+            <div class="label">
+              <mat-icon>location_on</mat-icon>
+              <span>Adresse</span>
+            </div>
+            <div class="value">{{ order.customerAddress }}</div>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <!-- Order Items -->
+    <mat-card>
+      <mat-card-header>
+        <mat-card-title>
+          <mat-icon>inventory_2</mat-icon>
+          Bestellpositionen
+        </mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <div class="items-table-container">
+          <table mat-table [dataSource]="order.items || []" class="items-table">
+            <ng-container matColumnDef="product">
+              <th mat-header-cell *matHeaderCellDef>Produkt</th>
+              <td mat-cell *matCellDef="let item">
+                {{ item.product?.name || 'Unbekanntes Produkt' }}
+              </td>
+            </ng-container>
+
+            <ng-container matColumnDef="quantity">
+              <th mat-header-cell *matHeaderCellDef>Gewicht (g)</th>
+              <td mat-cell *matCellDef="let item">
+                {{ item.quantity }} g
+              </td>
+            </ng-container>
+
+            <ng-container matColumnDef="unitPrice">
+              <th mat-header-cell *matHeaderCellDef>Preis/kg</th>
+              <td mat-cell *matCellDef="let item">
+                €{{ item.unitPrice | number:'1.2-2' }}/kg
+              </td>
+            </ng-container>
+
+            <ng-container matColumnDef="subtotal">
+              <th mat-header-cell *matHeaderCellDef>Zwischensumme</th>
+              <td mat-cell *matCellDef="let item" class="subtotal-cell">
+                €{{ item.subtotal | number:'1.2-2' }}
+              </td>
+            </ng-container>
+
+            <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+            <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+          </table>
+        </div>
+
+        <div class="total-section">
+          <div class="total-row">
+            <span class="total-label">Gesamtbetrag:</span>
+            <span class="total-amount">€{{ order.totalAmount | number:'1.2-2' }}</span>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <!-- Actions -->
+    <div class="actions">
+      <button mat-raised-button color="accent" (click)="createInvoice()">
+        <mat-icon>receipt</mat-icon>
+        Rechnung erstellen
+      </button>
+      <button mat-raised-button color="primary" (click)="editOrder()">
+        <mat-icon>edit</mat-icon>
+        Bestellung bearbeiten
+      </button>
+      <button mat-button (click)="goBack()">
+        <mat-icon>arrow_back</mat-icon>
+        Zurück zur Liste
+      </button>
+    </div>
+  </div>
+</div>

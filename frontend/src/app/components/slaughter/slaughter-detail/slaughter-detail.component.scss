@@ -1,0 +1,159 @@
+.spacer {
+  flex: 1 1 auto;
+}
+
+.container {
+  padding: 20px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.loading-spinner {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 400px;
+}
+
+mat-card {
+  margin-top: 20px;
+}
+
+mat-card-header {
+  margin-bottom: 20px;
+}
+
+mat-card-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 1.5rem;
+
+  .title-icon {
+    color: #4caf50;
+  }
+}
+
+.detail-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.detail-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 0;
+
+  .label {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-weight: 500;
+    color: #666;
+
+    mat-icon {
+      color: #4caf50;
+    }
+  }
+
+  .value {
+    font-size: 1.1rem;
+    color: #333;
+
+    &.weight {
+      font-weight: 600;
+      color: #4caf50;
+    }
+
+    &.price {
+      font-weight: 600;
+      color: #2196f3;
+    }
+  }
+}
+
+.section-divider {
+  margin: 30px 0 20px 0;
+}
+
+.meat-cuts-section {
+  margin-top: 20px;
+
+  h3 {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 15px;
+    color: #333;
+
+    mat-icon {
+      color: #4caf50;
+    }
+  }
+
+  .table-container {
+    margin-top: 15px;
+    overflow-x: auto;
+  }
+
+  table {
+    width: 100%;
+  }
+
+  .weight-value {
+    font-weight: 500;
+    color: #4caf50;
+  }
+
+  .price-value {
+    font-weight: 500;
+    color: #2196f3;
+  }
+}
+
+.cuts-chip {
+  background-color: #e3f2fd;
+  color: #1976d2;
+  font-weight: 500;
+}
+
+.no-data-message {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 40px;
+  color: #999;
+
+  mat-icon {
+    font-size: 48px;
+    width: 48px;
+    height: 48px;
+  }
+}
+
+mat-card-actions {
+  display: flex;
+  gap: 10px;
+  padding: 16px;
+  border-top: 1px solid #e0e0e0;
+  margin-top: 20px;
+}
+
+@media (max-width: 768px) {
+  .detail-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 5px;
+  }
+
+  mat-card-actions {
+    flex-direction: column;
+
+    button {
+      width: 100%;
+    }
+  }
+}

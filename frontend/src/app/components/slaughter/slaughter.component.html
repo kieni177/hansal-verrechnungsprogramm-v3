@@ -1,0 +1,180 @@
+<div class="page-content fade-in">
+  <div class="page-header">
+    <h1>
+      <mat-icon class="header-icon">grass</mat-icon>
+      Rinderschlachtungen
+    </h1>
+    <p class="text-secondary">Verfolgen Sie Rinderschlachtungen und Fleischproduktion</p>
+  </div>
+
+  <div *ngIf="isLoading" class="loading-spinner">
+    <mat-spinner diameter="50"></mat-spinner>
+  </div>
+
+  <div *ngIf="!isLoading" class="content-section">
+    <div class="toolbar">
+      <button mat-raised-button color="primary" (click)="add()" class="add-button">
+        <mat-icon>add</mat-icon>
+        Schlachtung erfassen
+      </button>
+    </div>
+
+    <div class="table-container">
+      <table mat-table [dataSource]="items" multiTemplateDataRows class="mat-elevation-z2">
+        <ng-container matColumnDef="id">
+          <th mat-header-cell *matHeaderCellDef>Datensatz-Nr.</th>
+          <td mat-cell *matCellDef="let item">
+            <span class="record-number">{{ item.id }}</span>
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="cowTag">
+          <th mat-header-cell *matHeaderCellDef>Ohrmarke</th>
+          <td mat-cell *matCellDef="let item">
+            <span class="cow-tag">{{ item.cowTag || item.cowId || 'N/A' }}</span>
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="slaughterDate">
+          <th mat-header-cell *matHeaderCellDef>Schlachtdatum</th>
+          <td mat-cell *matCellDef="let item">{{ item.slaughterDate | date:'mediumDate' }}</td>
+        </ng-container>
+
+        <ng-container matColumnDef="totalWeight">
+          <th mat-header-cell *matHeaderCellDef>Gesamtgewicht</th>
+          <td mat-cell *matCellDef="let item">
+            <span class="weight-value">{{ item.totalWeight | number:'1.2-2' }} kg</span>
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="meatCutsCount">
+          <th mat-header-cell *matHeaderCellDef>Produkte</th>
+          <td mat-cell *matCellDef="let item">
+            <mat-chip class="cuts-chip">{{ getMeatCutsCount(item) }} Produkte</mat-chip>
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="actions">
+          <th mat-header-cell *matHeaderCellDef>Aktionen</th>
+          <td mat-cell *matCellDef="let item" (click)="$event.stopPropagation()">
+            <button mat-icon-button (click)="toggleExpand(item)" matTooltip="Details anzeigen">
+              <mat-icon>{{ expandedElement === item ? 'expand_less' : 'expand_more' }}</mat-icon>
+            </button>
+            <button mat-icon-button color="warn" (click)="delete(item.id!)" matTooltip="Löschen">
+              <mat-icon>delete</mat-icon>
+            </button>
+          </td>
+        </ng-container>
+
+        <!-- Expanded Content Column -->
+        <ng-container matColumnDef="expandedDetail">
+          <td mat-cell *matCellDef="let item" [attr.colspan]="displayedColumns.length">
+            <div class="slaughter-detail" [@detailExpand]="item == expandedElement ? 'expanded' : 'collapsed'">
+              <div class="detail-container">
+                <!-- View Mode -->
+                <div *ngIf="!isEditing(item)">
+                  <div class="detail-section">
+                    <div class="section-header">
+                      <h3><mat-icon>info</mat-icon> Schlachtdetails</h3>
+                      <button mat-raised-button color="primary" (click)="startEdit(item)">
+                        <mat-icon>edit</mat-icon> Bearbeiten
+                      </button>
+                    </div>
+                    <div class="detail-grid">
+                      <div class="detail-item">
+                        <span class="label">Datensatz-Nr.:</span>
+                        <span class="value">{{ item.id }}</span>
+                      </div>
+                      <div class="detail-item">
+                        <span class="label">Ohrmarke:</span>
+                        <span class="value">{{ item.cowTag || item.cowId || 'N/A' }}</span>
+                      </div>
+                      <div class="detail-item">
+                        <span class="label">Schlachtdatum:</span>
+                        <span class="value">{{ item.slaughterDate | date:'dd.MM.yyyy' }}</span>
+                      </div>
+                      <div class="detail-item">
+                        <span class="label">Gesamtgewicht:</span>
+                        <span class="value">{{ item.totalWeight | number:'1.2-2' }} kg</span>
+                      </div>
+                      <div class="detail-item">
+                        <span class="label">Anzahl Produkte:</span>
+                        <span class="value">{{ getMeatCutsCount(item) }}</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="detail-section" *ngIf="item.meatCuts && item.meatCuts.length > 0">
+                    <h3><mat-icon>restaurant</mat-icon> Fleischprodukte</h3>
+                    <table class="items-table">
+                      <thead>
+                        <tr>
+                          <th>Produkt</th>
+                          <th>Gesamtgewicht</th>
+                          <th>Verfügbares Gewicht</th>
+                          <th>Preis pro kg</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr *ngFor="let cut of item.meatCuts">
+                          <td>{{ cut.product?.name || '-' }}</td>
+                          <td>{{ cut.totalWeight | number:'1.2-2' }} kg</td>
+                          <td>{{ cut.availableWeight | number:'1.2-2' }} kg</td>
+                          <td>€ {{ cut.pricePerKg | number:'1.2-2' }}/kg</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+
+                <!-- Edit Mode -->
+                <div *ngIf="isEditing(item) && editedSlaughter">
+                  <div class="detail-section">
+                    <div class="section-header">
+                      <h3><mat-icon>edit</mat-icon> Schlachtung bearbeiten</h3>
+                      <div class="action-buttons">
+                        <button mat-raised-button (click)="cancelEdit()">
+                          <mat-icon>close</mat-icon> Abbrechen
+                        </button>
+                        <button mat-raised-button color="primary" (click)="saveEdit()">
+                          <mat-icon>save</mat-icon> Speichern
+                        </button>
+                      </div>
+                    </div>
+                    <div class="edit-grid">
+                      <mat-form-field appearance="outline">
+                        <mat-label>Ohrmarke</mat-label>
+                        <input matInput [(ngModel)]="editedSlaughter.cowTag" required>
+                      </mat-form-field>
+
+                      <mat-form-field appearance="outline">
+                        <mat-label>Schlachtdatum</mat-label>
+                        <input matInput type="date" [(ngModel)]="editedSlaughter.slaughterDate" required>
+                      </mat-form-field>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </td>
+        </ng-container>
+
+        <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+        <tr mat-row *matRowDef="let row; columns: displayedColumns;"
+            class="slaughter-row"
+            [class.expanded-row]="expandedElement === row"
+            (click)="toggleExpand(row)"></tr>
+        <tr mat-row *matRowDef="let row; columns: ['expandedDetail']" class="detail-row"></tr>
+
+        <tr class="mat-row" *matNoDataRow>
+          <td class="mat-cell no-data" [attr.colspan]="displayedColumns.length">
+            <div class="no-data-message">
+              <mat-icon>grass</mat-icon>
+              <p>Keine Schlachtdatensätze gefunden</p>
+            </div>
+          </td>
+        </tr>
+      </table>
+    </div>
+  </div>
+</div>

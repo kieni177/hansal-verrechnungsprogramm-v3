@@ -1,0 +1,52 @@
+@use '@angular/material' as mat;
+
+@include mat.core();
+
+// Define a custom theme using Material 3 (M3) theming
+$hansal-theme: mat.define-theme((
+  color: (
+    theme-type: light,
+    primary: mat.$green-palette,
+    tertiary: mat.$yellow-palette,
+  ),
+  typography: (
+    plain-family: 'Inter, Roboto, sans-serif',
+    brand-family: 'Inter, Roboto, sans-serif',
+  ),
+  density: (
+    scale: 0
+  )
+));
+
+// Apply the theme to all Material components
+@include mat.all-component-themes($hansal-theme);
+
+// Custom variables for consistency
+:root {
+  --primary-color: #3eab53;
+  --primary-dark: #309342;
+  --primary-light: #5bb96c;
+  --accent-color: #ffc107;
+  --accent-dark: #ffa000;
+  --warn-color: #ff5722;
+
+  --bg-primary: #ffffff;
+  --bg-secondary: #f8f9fa;
+  --bg-tertiary: #e8f5e9;
+
+  --text-primary: #2c3e50;
+  --text-secondary: #546e7a;
+  --text-light: #78909c;
+
+  --border-color: #e0e0e0;
+  --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.08);
+  --shadow-md: 0 4px 8px rgba(0, 0, 0, 0.12);
+  --shadow-lg: 0 8px 16px rgba(0, 0, 0, 0.16);
+
+  --border-radius: 8px;
+  --spacing-xs: 4px;
+  --spacing-sm: 8px;
+  --spacing-md: 16px;
+  --spacing-lg: 24px;
+  --spacing-xl: 32px;
+}

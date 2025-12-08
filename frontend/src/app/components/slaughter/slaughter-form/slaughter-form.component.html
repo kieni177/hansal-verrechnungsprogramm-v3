@@ -1,0 +1,158 @@
+<mat-toolbar color="primary">
+  <button mat-icon-button (click)="goBack()" aria-label="Zurück">
+    <mat-icon>arrow_back</mat-icon>
+  </button>
+  <mat-icon class="toolbar-icon">grass</mat-icon>
+  <span>{{ title }}</span>
+</mat-toolbar>
+
+<div class="container">
+  <mat-card>
+    <mat-card-content>
+      <form [formGroup]="form" class="form" (ngSubmit)="save()">
+        <!-- Cow Information Section -->
+        <div class="section">
+          <h3 class="section-title">Rindinformationen</h3>
+          <div class="cow-fields">
+            <mat-form-field appearance="outline">
+              <mat-label>Ohrmarke / Kennung</mat-label>
+              <input matInput formControlName="cowTag" required [disabled]="loading">
+              <mat-icon matPrefix>tag</mat-icon>
+              <mat-error>{{ getError('cowTag') }}</mat-error>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+              <mat-label>Rind-ID (Optional)</mat-label>
+              <input matInput formControlName="cowId" [disabled]="loading">
+              <mat-icon matPrefix>badge</mat-icon>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+              <mat-label>Schlachtdatum</mat-label>
+              <input matInput [matDatepicker]="picker" formControlName="slaughterDate" required [disabled]="loading">
+              <mat-icon matPrefix>calendar_today</mat-icon>
+              <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
+              <mat-datepicker #picker></mat-datepicker>
+              <mat-error>{{ getError('slaughterDate') }}</mat-error>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Notizen</mat-label>
+              <textarea matInput formControlName="notes" rows="2" [disabled]="loading"></textarea>
+              <mat-icon matPrefix>notes</mat-icon>
+            </mat-form-field>
+          </div>
+        </div>
+
+        <!-- Add Meat Cuts Section -->
+        <div class="section">
+          <h3 class="section-title">Produkte hinzufügen</h3>
+          <div class="add-cut-form">
+            <mat-form-field appearance="outline" class="cut-type-field">
+              <mat-label>Produkt</mat-label>
+              <mat-select formControlName="selectedProductId" (selectionChange)="onProductChange()" [disabled]="loading || loadingProducts">
+                <mat-option *ngFor="let product of products" [value]="product.id">
+                  {{ product.name }} - €{{ product.price | number:'1.2-2' }}/kg
+                </mat-option>
+              </mat-select>
+              <mat-icon matPrefix>inventory</mat-icon>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="weight-field">
+              <mat-label>Gewicht (g)</mat-label>
+              <input matInput type="number" formControlName="cutWeight" min="0" step="1" [disabled]="loading">
+              <mat-icon matPrefix>scale</mat-icon>
+              <span matSuffix>g</span>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="price-field">
+              <mat-label>Preis pro kg</mat-label>
+              <input matInput type="number" formControlName="cutPricePerKg" min="0" step="0.01" [disabled]="loading">
+              <span matPrefix>€&nbsp;</span>
+              <span matSuffix>/kg</span>
+            </mat-form-field>
+
+            <button
+              mat-raised-button
+              color="primary"
+              type="button"
+              (click)="addMeatCut()"
+              [disabled]="!form.get('selectedProductId')?.value || loading"
+              class="add-cut-button">
+              <mat-icon>add</mat-icon>
+              Hinzufügen
+            </button>
+          </div>
+        </div>
+
+        <!-- Meat Cuts Table Section -->
+        <div class="section" *ngIf="meatCuts.length > 0">
+          <h3 class="section-title">Hinzugefügte Produkte</h3>
+          <div class="cuts-table-container">
+            <table mat-table [dataSource]="meatCuts.controls" class="cuts-table">
+              <ng-container matColumnDef="product">
+                <th mat-header-cell *matHeaderCellDef>Produkt</th>
+                <td mat-cell *matCellDef="let cut">
+                  {{ cut.get('product')?.value?.name || 'Unbekanntes Produkt' }}
+                </td>
+              </ng-container>
+
+              <ng-container matColumnDef="weight">
+                <th mat-header-cell *matHeaderCellDef>Gewicht (g)</th>
+                <td mat-cell *matCellDef="let cut">
+                  {{ cut.get('totalWeight')?.value | number:'1.0-0' }} g
+                </td>
+              </ng-container>
+
+              <ng-container matColumnDef="pricePerKg">
+                <th mat-header-cell *matHeaderCellDef>Preis/kg</th>
+                <td mat-cell *matCellDef="let cut">
+                  <span *ngIf="cut.get('pricePerKg')?.value">
+                    €{{ cut.get('pricePerKg')?.value | number:'1.2-2' }}/kg
+                  </span>
+                  <span *ngIf="!cut.get('pricePerKg')?.value" class="text-muted">-</span>
+                </td>
+              </ng-container>
+
+              <ng-container matColumnDef="actions">
+                <th mat-header-cell *matHeaderCellDef>Aktionen</th>
+                <td mat-cell *matCellDef="let cut; let i = index">
+                  <button mat-icon-button color="warn" (click)="removeMeatCut(i)" type="button" [disabled]="loading">
+                    <mat-icon>delete</mat-icon>
+                  </button>
+                </td>
+              </ng-container>
+
+              <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+              <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+            </table>
+          </div>
+
+          <div class="total-section">
+            <div class="total-row">
+              <span class="total-label">Gesamtgewicht:</span>
+              <span class="total-amount">{{ totalWeight | number:'1.0-0' }} g</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="empty-message" *ngIf="meatCuts.length === 0">
+          <mat-icon>inventory</mat-icon>
+          <p>Noch keine Produkte hinzugefügt. Wählen Sie oben ein Produkt und Gewicht aus.</p>
+        </div>
+
+        <div class="actions">
+          <button mat-button type="button" (click)="goBack()" [disabled]="loading">Abbrechen</button>
+          <button
+            mat-raised-button
+            color="primary"
+            type="submit"
+            [disabled]="form.get('cowTag')?.invalid || meatCuts.length === 0 || loading || loadingProducts">
+            <mat-icon>{{ isEditMode ? 'save' : 'add' }}</mat-icon>
+            {{ isEditMode ? 'Datensatz aktualisieren' : 'Datensatz erstellen' }}
+          </button>
+        </div>
+      </form>
+    </mat-card-content>
+  </mat-card>
+</div>

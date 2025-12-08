@@ -1,0 +1,134 @@
+<mat-toolbar color="primary">
+  <button mat-icon-button (click)="goBack()" aria-label="Zurück">
+    <mat-icon>arrow_back</mat-icon>
+  </button>
+  <span>Schlachtdatensatz Details</span>
+  <span class="spacer"></span>
+  <button mat-icon-button (click)="editSlaughter()" *ngIf="slaughter" aria-label="Schlachtdatensatz bearbeiten">
+    <mat-icon>edit</mat-icon>
+  </button>
+</mat-toolbar>
+
+<div class="container">
+  <div *ngIf="loading" class="loading-spinner">
+    <mat-spinner diameter="50"></mat-spinner>
+  </div>
+
+  <mat-card *ngIf="!loading && slaughter">
+    <mat-card-header>
+      <mat-card-title>
+        <mat-icon class="title-icon">grass</mat-icon>
+        Ohrmarke: {{ slaughter.cowTag || slaughter.cowId || 'N/A' }}
+      </mat-card-title>
+    </mat-card-header>
+
+    <mat-card-content>
+      <div class="detail-grid">
+        <div class="detail-item">
+          <div class="label">
+            <mat-icon>tag</mat-icon>
+            <span>Datensatz-ID</span>
+          </div>
+          <div class="value">{{ slaughter.id }}</div>
+        </div>
+
+        <mat-divider></mat-divider>
+
+        <div class="detail-item">
+          <div class="label">
+            <mat-icon>calendar_today</mat-icon>
+            <span>Schlachtdatum</span>
+          </div>
+          <div class="value">{{ slaughter.slaughterDate | date:'fullDate' }}</div>
+        </div>
+
+        <mat-divider></mat-divider>
+
+        <div class="detail-item">
+          <div class="label">
+            <mat-icon>scale</mat-icon>
+            <span>Gesamtgewicht</span>
+          </div>
+          <div class="value weight">{{ slaughter.totalWeight | number:'1.2-2' }} kg</div>
+        </div>
+
+        <mat-divider></mat-divider>
+
+        <div class="detail-item">
+          <div class="label">
+            <mat-icon>category</mat-icon>
+            <span>Anzahl Produkte</span>
+          </div>
+          <div class="value">
+            <mat-chip class="cuts-chip">{{ getMeatCutsCount() }} Produkte</mat-chip>
+          </div>
+        </div>
+
+        <mat-divider *ngIf="slaughter.notes"></mat-divider>
+
+        <div class="detail-item" *ngIf="slaughter.notes">
+          <div class="label">
+            <mat-icon>notes</mat-icon>
+            <span>Notizen</span>
+          </div>
+          <div class="value">{{ slaughter.notes }}</div>
+        </div>
+      </div>
+
+      <mat-divider class="section-divider"></mat-divider>
+
+      <div class="meat-cuts-section">
+        <h3>
+          <mat-icon>inventory</mat-icon>
+          Produkte Aufschlüsselung
+        </h3>
+
+        <div *ngIf="slaughter.meatCuts && slaughter.meatCuts.length > 0" class="table-container">
+          <table mat-table [dataSource]="slaughter.meatCuts" class="mat-elevation-z2">
+            <ng-container matColumnDef="cutType">
+              <th mat-header-cell *matHeaderCellDef>Produkt</th>
+              <td mat-cell *matCellDef="let cut">
+                <strong>{{ cut.product?.name || 'Unbekanntes Produkt' }}</strong>
+              </td>
+            </ng-container>
+
+            <ng-container matColumnDef="weight">
+              <th mat-header-cell *matHeaderCellDef>Gewicht</th>
+              <td mat-cell *matCellDef="let cut">
+                <span class="weight-value">{{ cut.totalWeight | number:'1.2-2' }} kg</span>
+              </td>
+            </ng-container>
+
+            <ng-container matColumnDef="pricePerKg">
+              <th mat-header-cell *matHeaderCellDef>Preis pro Kg</th>
+              <td mat-cell *matCellDef="let cut">
+                <span class="price-value">
+                  {{ cut.pricePerKg ? ('€' + (cut.pricePerKg | number:'1.2-2')) : 'N/A' }}
+                </span>
+              </td>
+            </ng-container>
+
+            <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+            <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+          </table>
+        </div>
+
+        <div *ngIf="!slaughter.meatCuts || slaughter.meatCuts.length === 0" class="no-data-message">
+          <mat-icon>info</mat-icon>
+          <p>Keine Produkte erfasst</p>
+        </div>
+      </div>
+    </mat-card-content>
+
+    <mat-card-actions>
+      <button mat-raised-button color="primary" (click)="editSlaughter()">
+        <mat-icon>edit</mat-icon>
+        Datensatz bearbeiten
+      </button>
+      <button mat-button (click)="goBack()">
+        <mat-icon>arrow_back</mat-icon>
+        Zurück zur Liste
+      </button>
+    </mat-card-actions>
+  </mat-card>
+</div>

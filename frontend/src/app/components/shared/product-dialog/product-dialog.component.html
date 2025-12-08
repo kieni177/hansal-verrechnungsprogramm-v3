@@ -1,0 +1,35 @@
+<h2 mat-dialog-title>{{ title }}</h2>
+<mat-dialog-content>
+  <form [formGroup]="form" class="form">
+    <mat-form-field appearance="outline">
+      <mat-label>Name</mat-label>
+      <input matInput formControlName="name" required>
+      <mat-error>{{ getError('name') }}</mat-error>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Beschreibung</mat-label>
+      <textarea matInput formControlName="description" rows="3"></textarea>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Preis</mat-label>
+      <input matInput type="number" formControlName="price" required>
+      <span matPrefix>€&nbsp;</span>
+      <mat-error>{{ getError('price') }}</mat-error>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Lagerbestand (g)</mat-label>
+      <input matInput type="number" formControlName="stockQuantity" required [disabled]="true" readonly>
+      <span matSuffix>g</span>
+      <mat-hint>Lagerbestand wird nur durch Schlachtungen aktualisiert</mat-hint>
+    </mat-form-field>
+  </form>
+</mat-dialog-content>
+<mat-dialog-actions align="end">
+  <button mat-button (click)="cancel()">Abbrechen</button>
+  <button mat-raised-button color="primary" (click)="save()">
+    {{ data.mode === 'create' ? 'Erstellen' : 'Aktualisieren' }}
+  </button>
+</mat-dialog-actions>

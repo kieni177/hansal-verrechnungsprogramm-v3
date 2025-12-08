@@ -1,0 +1,218 @@
+.app-toolbar {
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  height: 64px;
+  padding: 0 20px;
+  background: linear-gradient(135deg, #3eab53 0%, #2d8f42 50%, #1b7a34 100%) !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15), 0 4px 20px rgba(62, 171, 83, 0.2);
+  border-bottom: 2px solid rgba(255, 255, 255, 0.1);
+
+  .menu-button {
+    margin-right: 16px;
+    color: white;
+    transition: all 0.3s ease;
+
+    &:hover {
+      background-color: rgba(255, 255, 255, 0.15);
+      transform: scale(1.05);
+    }
+  }
+
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: white;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+
+    .brand-icon {
+      font-size: 32px;
+      width: 32px;
+      height: 32px;
+      filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
+      animation: pulse 3s ease-in-out infinite;
+    }
+
+    .brand-logo {
+      height: 48px;
+      width: auto;
+      border-radius: 4px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    }
+
+    .brand-name {
+      letter-spacing: 0.5px;
+
+      @media (max-width: 768px) {
+        display: none;
+      }
+    }
+  }
+
+  .spacer {
+    flex: 1 1 auto;
+  }
+
+  .user-button {
+    margin-left: 8px;
+    color: white;
+    transition: all 0.3s ease;
+
+    &:hover {
+      background-color: rgba(255, 255, 255, 0.15);
+      transform: scale(1.05);
+    }
+  }
+}
+
+@keyframes pulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+}
+
+.sidenav-container {
+  position: absolute;
+  top: 64px;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background-color: var(--bg-secondary);
+}
+
+.sidenav {
+  width: 260px;
+  border-right: 1px solid var(--border-color);
+  box-shadow: var(--shadow-sm);
+
+  .sidenav-header {
+    padding: 24px 16px;
+    background: linear-gradient(135deg, var(--bg-tertiary) 0%, rgba(62, 171, 83, 0.1) 100%);
+    border-bottom: 2px solid var(--primary-color);
+
+    .logo-container {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+
+      .logo-icon {
+        font-size: 40px;
+        width: 40px;
+        height: 40px;
+        color: var(--primary-color);
+      }
+
+      .sidebar-logo {
+        height: 60px;
+        width: auto;
+        border-radius: 4px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      }
+
+      .logo-text {
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: var(--primary-dark);
+        line-height: 1.2;
+      }
+    }
+  }
+
+  .nav-list {
+    padding: 16px 8px;
+
+    .nav-item {
+      border-radius: var(--border-radius);
+      margin-bottom: 4px;
+      transition: all 0.2s ease;
+      font-weight: 500;
+
+      &:hover {
+        background-color: var(--bg-tertiary);
+
+        .mat-icon {
+          color: var(--primary-color);
+        }
+      }
+
+      &.active {
+        background-color: var(--bg-tertiary);
+        color: var(--primary-color);
+        font-weight: 600;
+        border-left: 3px solid var(--primary-color);
+
+        .mat-icon {
+          color: var(--primary-color);
+        }
+      }
+
+      .mat-icon {
+        color: var(--text-secondary);
+        transition: color 0.2s ease;
+      }
+    }
+  }
+}
+
+.main-content {
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
+}
+
+.content-wrapper {
+  flex: 1;
+  padding: 24px;
+  max-width: 1400px;
+  margin: 0 auto;
+  width: 100%;
+
+  @media (max-width: 768px) {
+    padding: 16px;
+  }
+
+  @media (max-width: 480px) {
+    padding: 12px;
+  }
+}
+
+// Responsive adjustments
+@media (max-width: 768px) {
+  .sidenav {
+    width: 240px;
+  }
+
+  .sidenav-header {
+    padding: 16px 12px;
+
+    .logo-text {
+      font-size: 1.1rem;
+    }
+  }
+}
+
+@media (max-width: 480px) {
+  .app-toolbar {
+    height: 56px;
+
+    .brand {
+      font-size: 1rem;
+
+      .brand-icon {
+        font-size: 28px;
+        width: 28px;
+        height: 28px;
+      }
+    }
+  }
+
+  .sidenav-container {
+    top: 56px;
+  }
+}
