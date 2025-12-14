@@ -1,0 +1,439 @@
+databaseChangeLog:
+  # ==========================================
+  # Initial Schema for Hansal Verrechnungsprogramm
+  # ==========================================
+  # This migration creates all base tables.
+  # Uses preConditions to skip tables that already exist (for existing installations).
+
+  # ------------------------------------------
+  # Table: products
+  # ------------------------------------------
+  - changeSet:
+      id: 001-create-products
+      author: hansal
+      preConditions:
+        - onFail: MARK_RAN
+        - not:
+            tableExists:
+              tableName: products
+      changes:
+        - createTable:
+            tableName: products
+            columns:
+              - column:
+                  name: id
+                  type: BIGINT
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: name
+                  type: VARCHAR(255)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: description
+                  type: VARCHAR(1000)
+              - column:
+                  name: price
+                  type: DECIMAL(10, 2)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: image_url
+                  type: VARCHAR(255)
+              - column:
+                  name: meat_cut_type
+                  type: VARCHAR(255)
+              - column:
+                  name: stock_quantity
+                  type: DECIMAL(10, 2)
+                  defaultValueNumeric: 0
+              - column:
+                  name: created_at
+                  type: TIMESTAMP
+                  constraints:
+                    nullable: false
+              - column:
+                  name: updated_at
+                  type: TIMESTAMP
+
+  # ------------------------------------------
+  # Table: users
+  # ------------------------------------------
+  - changeSet:
+      id: 001-create-users
+      author: hansal
+      preConditions:
+        - onFail: MARK_RAN
+        - not:
+            tableExists:
+              tableName: users
+      changes:
+        - createTable:
+            tableName: users
+            columns:
+              - column:
+                  name: id
+                  type: BIGINT
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: username
+                  type: VARCHAR(255)
+                  constraints:
+                    nullable: false
+                    unique: true
+              - column:
+                  name: password
+                  type: VARCHAR(255)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: email
+                  type: VARCHAR(255)
+                  constraints:
+                    unique: true
+              - column:
+                  name: full_name
+                  type: VARCHAR(255)
+              - column:
+                  name: role
+                  type: VARCHAR(50)
+                  constraints:
+                    nullable: false
+                  defaultValue: 'ADMIN'
+              - column:
+                  name: enabled
+                  type: BOOLEAN
+                  constraints:
+                    nullable: false
+                  defaultValueBoolean: true
+              - column:
+                  name: created_at
+                  type: TIMESTAMP
+                  constraints:
+                    nullable: false
+              - column:
+                  name: updated_at
+                  type: TIMESTAMP
+
+  # ------------------------------------------
+  # Table: slaughters
+  # ------------------------------------------
+  - changeSet:
+      id: 001-create-slaughters
+      author: hansal
+      preConditions:
+        - onFail: MARK_RAN
+        - not:
+            tableExists:
+              tableName: slaughters
+      changes:
+        - createTable:
+            tableName: slaughters
+            columns:
+              - column:
+                  name: id
+                  type: BIGINT
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: cow_tag
+                  type: VARCHAR(255)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: cow_id
+                  type: VARCHAR(255)
+              - column:
+                  name: slaughter_date
+                  type: DATE
+                  constraints:
+                    nullable: false
+              - column:
+                  name: total_weight
+                  type: DECIMAL(10, 2)
+              - column:
+                  name: notes
+                  type: VARCHAR(2000)
+              - column:
+                  name: created_at
+                  type: TIMESTAMP
+                  constraints:
+                    nullable: false
+              - column:
+                  name: updated_at
+                  type: TIMESTAMP
+
+  # ------------------------------------------
+  # Table: orders
+  # ------------------------------------------
+  - changeSet:
+      id: 001-create-orders
+      author: hansal
+      preConditions:
+        - onFail: MARK_RAN
+        - not:
+            tableExists:
+              tableName: orders
+      changes:
+        - createTable:
+            tableName: orders
+            columns:
+              - column:
+                  name: id
+                  type: BIGINT
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: customer_name
+                  type: VARCHAR(255)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: customer_phone
+                  type: VARCHAR(255)
+              - column:
+                  name: customer_address
+                  type: VARCHAR(500)
+              - column:
+                  name: total_amount
+                  type: DECIMAL(10, 2)
+                  defaultValueNumeric: 0
+              - column:
+                  name: status
+                  type: VARCHAR(50)
+                  constraints:
+                    nullable: false
+                  defaultValue: 'PENDING'
+              - column:
+                  name: order_date
+                  type: TIMESTAMP
+                  constraints:
+                    nullable: false
+              - column:
+                  name: created_at
+                  type: TIMESTAMP
+                  constraints:
+                    nullable: false
+              - column:
+                  name: updated_at
+                  type: TIMESTAMP
+
+  # ------------------------------------------
+  # Table: meat_cuts (depends on slaughters, products)
+  # ------------------------------------------
+  - changeSet:
+      id: 001-create-meat-cuts
+      author: hansal
+      preConditions:
+        - onFail: MARK_RAN
+        - not:
+            tableExists:
+              tableName: meat_cuts
+      changes:
+        - createTable:
+            tableName: meat_cuts
+            columns:
+              - column:
+                  name: id
+                  type: BIGINT
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: slaughter_id
+                  type: BIGINT
+                  constraints:
+                    nullable: false
+              - column:
+                  name: product_id
+                  type: BIGINT
+                  constraints:
+                    nullable: false
+              - column:
+                  name: total_weight
+                  type: DECIMAL(10, 2)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: available_weight
+                  type: DECIMAL(10, 2)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: price_per_kg
+                  type: DECIMAL(10, 2)
+        - addForeignKeyConstraint:
+            baseTableName: meat_cuts
+            baseColumnNames: slaughter_id
+            referencedTableName: slaughters
+            referencedColumnNames: id
+            constraintName: fk_meat_cuts_slaughter
+            onDelete: CASCADE
+        - addForeignKeyConstraint:
+            baseTableName: meat_cuts
+            baseColumnNames: product_id
+            referencedTableName: products
+            referencedColumnNames: id
+            constraintName: fk_meat_cuts_product
+
+  # ------------------------------------------
+  # Table: invoices (depends on orders)
+  # ------------------------------------------
+  - changeSet:
+      id: 001-create-invoices
+      author: hansal
+      preConditions:
+        - onFail: MARK_RAN
+        - not:
+            tableExists:
+              tableName: invoices
+      changes:
+        - createTable:
+            tableName: invoices
+            columns:
+              - column:
+                  name: id
+                  type: BIGINT
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: invoice_number
+                  type: VARCHAR(255)
+                  constraints:
+                    nullable: false
+                    unique: true
+              - column:
+                  name: order_id
+                  type: BIGINT
+                  constraints:
+                    nullable: false
+              - column:
+                  name: issue_date
+                  type: DATE
+                  constraints:
+                    nullable: false
+              - column:
+                  name: due_date
+                  type: DATE
+              - column:
+                  name: total_amount
+                  type: DECIMAL(10, 2)
+              - column:
+                  name: tax_rate
+                  type: DECIMAL(5, 2)
+                  defaultValueNumeric: 0
+              - column:
+                  name: tax_amount
+                  type: DECIMAL(10, 2)
+                  defaultValueNumeric: 0
+              - column:
+                  name: grand_total
+                  type: DECIMAL(10, 2)
+              - column:
+                  name: notes
+                  type: VARCHAR(1000)
+              - column:
+                  name: status
+                  type: VARCHAR(50)
+                  constraints:
+                    nullable: false
+                  defaultValue: 'UNPAID'
+              - column:
+                  name: created_by
+                  type: VARCHAR(255)
+              - column:
+                  name: created_at
+                  type: TIMESTAMP
+                  constraints:
+                    nullable: false
+              - column:
+                  name: updated_at
+                  type: TIMESTAMP
+        - addForeignKeyConstraint:
+            baseTableName: invoices
+            baseColumnNames: order_id
+            referencedTableName: orders
+            referencedColumnNames: id
+            constraintName: fk_invoices_order
+
+  # ------------------------------------------
+  # Table: order_items (depends on orders, products, meat_cuts)
+  # ------------------------------------------
+  - changeSet:
+      id: 001-create-order-items
+      author: hansal
+      preConditions:
+        - onFail: MARK_RAN
+        - not:
+            tableExists:
+              tableName: order_items
+      changes:
+        - createTable:
+            tableName: order_items
+            columns:
+              - column:
+                  name: id
+                  type: BIGINT
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: order_id
+                  type: BIGINT
+                  constraints:
+                    nullable: false
+              - column:
+                  name: product_id
+                  type: BIGINT
+              - column:
+                  name: meat_cut_id
+                  type: BIGINT
+              - column:
+                  name: quantity
+                  type: INTEGER
+              - column:
+                  name: weight
+                  type: DECIMAL(10, 3)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: unit_price
+                  type: DECIMAL(10, 2)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: subtotal
+                  type: DECIMAL(10, 2)
+        - addForeignKeyConstraint:
+            baseTableName: order_items
+            baseColumnNames: order_id
+            referencedTableName: orders
+            referencedColumnNames: id
+            constraintName: fk_order_items_order
+            onDelete: CASCADE
+        - addForeignKeyConstraint:
+            baseTableName: order_items
+            baseColumnNames: product_id
+            referencedTableName: products
+            referencedColumnNames: id
+            constraintName: fk_order_items_product
+        - addForeignKeyConstraint:
+            baseTableName: order_items
+            baseColumnNames: meat_cut_id
+            referencedTableName: meat_cuts
+            referencedColumnNames: id
+            constraintName: fk_order_items_meat_cut

@@ -65,7 +65,7 @@ public class InvoiceController {
     public ResponseEntity<byte[]> downloadInvoicePdf(@PathVariable Long id) {
         Invoice invoice = invoiceService.getInvoiceById(id);
         byte[] pdfBytes = invoiceService.generateInvoicePdf(id);
-        
+
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_PDF);
         String customerName = invoice.getOrder().getCustomerName()
@@ -74,7 +74,27 @@ public class InvoiceController {
         headers.setContentDispositionFormData("attachment",
                 "beleg_" + customerName + ".pdf");
         headers.setContentLength(pdfBytes.length);
-        
+
+        return ResponseEntity.ok()
+                .headers(headers)
+                .body(pdfBytes);
+    }
+
+    @PostMapping("/batch/pdf")
+    public ResponseEntity<byte[]> downloadCombinedPdf(@RequestBody List<Long> invoiceIds) {
+        if (invoiceIds == null || invoiceIds.isEmpty()) {
+            return ResponseEntity.badRequest().build();
+        }
+
+        byte[] pdfBytes = invoiceService.generateCombinedPdf(invoiceIds);
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_PDF);
+        String timestamp = java.time.LocalDate.now().format(java.time.format.DateTimeFormatter.ofPattern("yyyyMMdd"));
+        headers.setContentDispositionFormData("attachment",
+                "belege_sammel_" + timestamp + ".pdf");
+        headers.setContentLength(pdfBytes.length);
+
         return ResponseEntity.ok()
                 .headers(headers)
                 .body(pdfBytes);

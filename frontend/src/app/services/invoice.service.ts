@@ -37,4 +37,8 @@ export class InvoiceService extends BaseService<Invoice> {
   downloadPdf(id: number): Observable<Blob> {
     return this.http.get(`${this.apiUrl}/${id}/pdf`, { responseType: 'blob' });
   }
+
+  downloadCombinedPdf(ids: number[]): Observable<Blob> {
+    return this.http.post(`${this.apiUrl}/batch/pdf`, ids, { responseType: 'blob' });
+  }
 }

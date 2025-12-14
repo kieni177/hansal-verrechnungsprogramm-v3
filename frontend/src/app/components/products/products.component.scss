@@ -27,18 +27,26 @@
 
 .toolbar {
   display: flex;
-  gap: 16px;
-  margin-bottom: var(--spacing-lg);
+  flex-wrap: wrap;
+  gap: 20px;
   align-items: flex-start;
+  padding: 20px 24px;
+  margin-bottom: 24px;
+  background: var(--bg-primary);
+  border-radius: var(--border-radius);
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--border-color);
 
   .search-field {
     flex: 1;
+    min-width: 280px;
     max-width: 400px;
   }
 
   .toolbar-buttons {
     display: flex;
-    gap: 12px;
+    gap: 16px;
+    margin-left: auto;
 
     button {
       height: 56px;
@@ -49,7 +57,31 @@
   }
 
   .add-button {
-    min-width: 160px;
+    min-width: 180px;
+  }
+}
+
+@media (max-width: 768px) {
+  .toolbar {
+    flex-direction: column;
+    padding: 16px;
+    gap: 16px;
+
+    .search-field {
+      max-width: 100%;
+      min-width: 100%;
+    }
+
+    .toolbar-buttons {
+      flex-direction: column;
+      width: 100%;
+      margin-left: 0;
+
+      button {
+        width: 100%;
+        justify-content: center;
+      }
+    }
   }
 }
 

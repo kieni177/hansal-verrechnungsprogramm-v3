@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { Order, OrderStatus } from '../models/order.model';
+import { Customer } from '../models/customer.model';
 import { BaseService } from '../shared/base/base.service';
 
 @Injectable({
@@ -24,5 +25,9 @@ export class OrderService extends BaseService<Order> {
 
   updateStatus(id: number, status: OrderStatus): Observable<Order> {
     return this.http.patch<Order>(`${this.apiUrl}/${id}/status`, null, { params: { status } });
+  }
+
+  getCustomers(): Observable<Customer[]> {
+    return this.http.get<Customer[]>(`${this.apiUrl}/customers`);
   }
 }

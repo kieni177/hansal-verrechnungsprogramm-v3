@@ -1,5 +1,6 @@
 package com.hansal.verrechnungsprogramm.controller;
 
+import com.hansal.verrechnungsprogramm.dto.CustomerDTO;
 import com.hansal.verrechnungsprogramm.model.Order;
 import com.hansal.verrechnungsprogramm.model.OrderStatus;
 import com.hansal.verrechnungsprogramm.service.OrderService;
@@ -22,6 +23,11 @@ public class OrderController {
     @GetMapping
     public ResponseEntity<List<Order>> getAllOrders() {
         return ResponseEntity.ok(orderService.getAllOrders());
+    }
+
+    @GetMapping("/customers")
+    public ResponseEntity<List<CustomerDTO>> getUniqueCustomers() {
+        return ResponseEntity.ok(orderService.getUniqueCustomers());
     }
 
     @GetMapping("/{id}")

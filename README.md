@@ -1,16 +1,22 @@
 # Hansal Verrechnungsprogramm v3
 
-A full-stack invoice and order management sthe cystem built with Angular 20 and Spring Boot 3.
+A full-stack invoice and order management system built with Angular 20 and Spring Boot 3.
 
 ## 📋 Features
 
 - **Product Management**: Create, update, delete, and search products
 - **Order Management**: Create and manage customer orders with multiple items
+- **Customer Autocomplete**: Smart autocomplete for customer names with auto-fill of phone/address from previous orders
 - **Invoice Generation**: Generate invoices from orders with PDF export
+- **Invoice Overwrite**: Dialog confirmation when recreating invoices for orders
+- **Batch PDF Download**: Download multiple invoices as a single combined PDF document
+- **Table Sorting & Filtering**: Click column headers to sort, search/filter across all tables
+- **Slaughter Management**: Track cattle slaughters and meat production with automatic stock updates
 - **Admin Dashboard**: Overview of products, orders, and invoices
 - **PDF Export**: Download invoices as professional PDF documents
 - **RESTful API**: Complete backend API for all operations
 - **Responsive UI**: Material Design interface
+- **Database Migrations**: Liquibase-managed schema for safe updates
 
 ## 🛠️ Technology Stack
 
@@ -19,7 +25,8 @@ A full-stack invoice and order management sthe cystem built with Angular 20 and 
 - Spring Boot 3.2.1
 - Spring Data JPA
 - Spring Security
-- PostgreSQL / H2 Database
+- PostgreSQL 16
+- Liquibase (Database migrations)
 - iText 8 (PDF generation)
 - Maven
 
@@ -225,6 +232,7 @@ Frontend runs on: http://localhost:4200
 ### Orders
 - `GET /api/orders` - Get all orders
 - `GET /api/orders/{id}` - Get order by ID
+- `GET /api/orders/customers` - Get unique customers (for autocomplete)
 - `GET /api/orders/search?customerName={name}` - Search orders
 - `GET /api/orders/status/{status}` - Get orders by status
 - `POST /api/orders` - Create order
@@ -236,7 +244,9 @@ Frontend runs on: http://localhost:4200
 - `GET /api/invoices` - Get all invoices
 - `GET /api/invoices/{id}` - Get invoice by ID
 - `GET /api/invoices/number/{number}` - Get invoice by number
+- `GET /api/invoices/by-order/{orderId}` - Get invoice by order ID
 - `POST /api/invoices/from-order/{orderId}` - Create invoice from order
+- `POST /api/invoices/batch/pdf` - Download multiple invoices as combined PDF
 - `PUT /api/invoices/{id}` - Update invoice
 - `DELETE /api/invoices/{id}` - Delete invoice
 - `GET /api/invoices/{id}/pdf` - Download invoice PDF
@@ -397,6 +407,131 @@ The application starts with an empty database. You can:
 - Check backend logs for iText errors
 - Ensure order has items before creating invoice
 
+## 🔄 Updating an Existing Installation
+
+If the application is already running on a PC and you need to update it with new code:
+
+### Step-by-Step Update Guide
+
+#### 1. Transfer the Updated Code
+
+**Option A: Using Git (Recommended)**
+```bash
+cd hansal-verrechnungsprogramm-v3
+git pull origin master
+```
+
+**Option B: Manual File Copy**
+- Copy the updated `hansal-verrechnungsprogramm-v3/` folder to the PC
+- Replace the existing folder (or merge changes)
+
+#### 2. Stop the Running Application
+```bash
+cd hansal-verrechnungsprogramm-v3
+docker-compose down
+```
+
+> **Important**: Do NOT use `docker-compose down -v` as this will delete your database!
+
+#### 3. Rebuild and Start with New Code
+```bash
+docker-compose up -d --build
+```
+
+This will:
+- Rebuild the backend with new Java code
+- Rebuild the frontend with new Angular code
+- Run any new Liquibase database migrations automatically
+- Restart all services
+
+#### 4. Verify the Update
+```bash
+# Check all services are running
+docker-compose ps
+
+# Check backend health
+curl http://localhost:8080/actuator/health
+
+# View logs if needed
+docker-compose logs -f
+```
+
+#### 5. Access the Updated Application
+- **Frontend**: http://localhost
+- **Backend API**: http://localhost:8080/api
+
+### Quick Update Commands (Copy & Paste)
+
+**Full Update Sequence:**
+```bash
+cd hansal-verrechnungsprogramm-v3
+docker-compose down
+git pull origin master  # or copy new files
+docker-compose up -d --build
+docker-compose ps
+```
+
+### What Happens During Update
+
+| Component | Action |
+|-----------|--------|
+| **Database** | Data is preserved. New Liquibase migrations run automatically. |
+| **Backend** | Rebuilt from source. New endpoints available immediately. |
+| **Frontend** | Rebuilt from source. New UI features available after refresh. |
+| **Configuration** | docker-compose.yml changes take effect. |
+
+### Troubleshooting Updates
+
+**Build fails with errors:**
+```bash
+# View build logs
+docker-compose logs backend
+docker-compose logs frontend
+
+# Try a clean rebuild
+docker-compose build --no-cache
+docker-compose up -d
+```
+
+**Database migration fails:**
+```bash
+# Check Liquibase logs
+docker-compose logs backend | grep -i liquibase
+
+# If migration is stuck, check the databasechangeloglock table
+docker-compose exec postgres psql -U hansal_user -d hansal_db -c "SELECT * FROM databasechangeloglock;"
+
+# Release stuck lock if needed
+docker-compose exec postgres psql -U hansal_user -d hansal_db -c "UPDATE databasechangeloglock SET locked=false;"
+```
+
+**Frontend not showing new features:**
+- Clear browser cache (Ctrl+Shift+R or Cmd+Shift+R)
+- Try incognito/private browsing mode
+
+**Rolling back to previous version:**
+```bash
+# If using Git
+git checkout <previous-commit-hash>
+docker-compose up -d --build
+
+# If using file copies, restore from backup
+```
+
+### Backup Before Update (Recommended)
+
+**Backup Database:**
+```bash
+docker-compose exec postgres pg_dump -U hansal_user hansal_db > backup_$(date +%Y%m%d).sql
+```
+
+**Restore Database (if needed):**
+```bash
+cat backup_20241214.sql | docker-compose exec -T postgres psql -U hansal_user hansal_db
+```
+
+---
+
 ## 🚀 Production Deployment
 
 For production:
@@ -424,5 +559,20 @@ For issues and questions, please contact the development team.
 
 ---
 
-**Version**: 3.0.0
-**Last Updated**: October 2025
+**Version**: 3.1.0
+**Last Updated**: December 2024
+
+### Changelog
+
+#### v3.1.0 (December 2024)
+- Added customer autocomplete with auto-fill of phone/address
+- Added batch PDF download for multiple invoices
+- Added table sorting (click column headers) and filtering for all tables
+- Added invoice overwrite confirmation dialog
+- Added Liquibase database migration system
+- Improved table sorting with ViewChild setter pattern
+
+#### v3.0.0 (October 2024)
+- Initial release with full product, order, and invoice management
+- PDF invoice generation
+- Docker deployment

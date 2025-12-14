@@ -1,8 +1,9 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, ActivatedRoute } from '@angular/router';
-import { MatTableModule } from '@angular/material/table';
+import { MatTableModule, MatTableDataSource } from '@angular/material/table';
+import { MatSortModule, MatSort } from '@angular/material/sort';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
@@ -26,6 +27,7 @@ import { API_MESSAGES } from '../../shared/constants/app.constants';
     CommonModule,
     FormsModule,
     MatTableModule,
+    MatSortModule,
     MatButtonModule,
     MatIconModule,
     MatProgressSpinnerModule,
@@ -46,9 +48,17 @@ import { API_MESSAGES } from '../../shared/constants/app.constants';
 })
 export class SlaughterComponent extends BaseCrudComponent<Slaughter> implements OnInit {
   displayedColumns = ['id', 'cowTag', 'slaughterDate', 'totalWeight', 'meatCutsCount', 'actions'];
+  dataSource = new MatTableDataSource<Slaughter>([]);
+  searchTerm = '';
   expandedElement: Slaughter | null = null;
   editingElement: Slaughter | null = null;
   editedSlaughter: Slaughter | null = null;
+
+  @ViewChild(MatSort) set sort(sort: MatSort) {
+    if (sort) {
+      this.dataSource.sort = sort;
+    }
+  }
 
   constructor(
     private slaughterService: SlaughterService,
@@ -71,6 +81,10 @@ export class SlaughterComponent extends BaseCrudComponent<Slaughter> implements 
       });
   }
 
+  applyFilter(): void {
+    this.dataSource.filter = this.searchTerm.trim().toLowerCase();
+  }
+
   loadAll(): void {
     this.setLoading(true);
     this.slaughterService.getAll()
@@ -82,6 +96,7 @@ export class SlaughterComponent extends BaseCrudComponent<Slaughter> implements 
             ...item,
             totalWeight: this.calculateTotalWeight(item)
           }));
+          this.dataSource.data = this.items;
           this.setLoading(false);
         },
         error: (error) => {

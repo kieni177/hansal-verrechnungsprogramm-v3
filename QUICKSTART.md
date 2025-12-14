@@ -68,21 +68,34 @@ Expected response: `{"status":"UP"}`
 - View overview of products, orders, and invoices
 
 ### 2. Manage Products
-- Click "Products" in the sidebar
+- Click "Produkte" in the sidebar
 - Add new products with name, price, description
 - Edit or delete existing products
+- Click column headers to sort the table
+- Use the search field to filter products
 
 ### 3. Create Orders
-- Click "Orders" in the sidebar
+- Click "Bestellungen" in the sidebar
 - Create new orders for customers
+- **Customer Autocomplete**: Start typing a customer name to see suggestions from previous orders
+- When selecting a known customer, phone and address are auto-filled
 - Add multiple products to each order
 - View order totals and status
+- Click column headers to sort, use filters to search
 
-### 4. Generate Invoices
-- Click "Invoices" in the sidebar
-- Generate invoice from any completed order
-- Download invoice as PDF
-- View invoice details
+### 4. Manage Slaughters
+- Click "Schlachtungen" in the sidebar
+- Record new cattle slaughters with meat cuts
+- Stock is automatically updated based on slaughter data
+- Track available weight per product
+
+### 5. Generate Invoices
+- Click "Rechnungen" in the sidebar
+- Generate invoice from any order
+- **Overwrite existing**: If an invoice exists, you'll be asked to confirm overwriting
+- **Batch Download**: Select multiple invoices and download as one combined PDF
+- Download individual invoices as PDF
+- Click column headers to sort, use filters to search
 
 ## 🛑 Stopping the Application
 
@@ -164,6 +177,22 @@ If you get script errors, configure Git to use LF:
 ```powershell
 git config --global core.autocrlf input
 ```
+
+## 🔄 Updating the Application
+
+If the application is already running and you have new code:
+
+```bash
+cd hansal-verrechnungsprogramm-v3
+docker-compose down                    # Stop (keeps data!)
+git pull origin master                 # Get new code (or copy files)
+docker-compose up -d --build           # Rebuild and start
+docker-compose ps                      # Verify running
+```
+
+> **Warning**: Never use `docker-compose down -v` during updates - this deletes your database!
+
+For detailed update instructions, see the [README.md](README.md#-updating-an-existing-installation).
 
 ## 📚 Next Steps
 

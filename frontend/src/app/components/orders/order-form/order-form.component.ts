@@ -11,8 +11,12 @@ import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatCardModule } from '@angular/material/card';
 import { MatTableModule } from '@angular/material/table';
 import { MatExpansionModule } from '@angular/material/expansion';
+import { MatAutocompleteModule } from '@angular/material/autocomplete';
+import { Observable } from 'rxjs';
+import { map, startWith } from 'rxjs/operators';
 import { Order, OrderItem, OrderStatus } from '../../../models/order.model';
 import { Product } from '../../../models/product.model';
+import { Customer } from '../../../models/customer.model';
 import { OrderService } from '../../../services/order.service';
 import { ProductService } from '../../../services/product.service';
 import { MeatCutService, MeatCutAvailability } from '../../../services/meat-cut.service';
@@ -33,7 +37,8 @@ import { FormUtils } from '../../../shared/utils/form.utils';
     MatToolbarModule,
     MatCardModule,
     MatTableModule,
-    MatExpansionModule
+    MatExpansionModule,
+    MatAutocompleteModule
   ],
   templateUrl: './order-form.component.html',
   styleUrls: ['./order-form.component.scss']
@@ -49,6 +54,8 @@ export class OrderFormComponent implements OnInit {
   selectedProduct: Product | null = null;
   meatCutAvailability: MeatCutAvailability[] = [];
   showAvailability: boolean = false;
+  customers: Customer[] = [];
+  filteredCustomers$!: Observable<Customer[]>;
 
   constructor(
     private fb: FormBuilder,
@@ -65,6 +72,7 @@ export class OrderFormComponent implements OnInit {
 
   ngOnInit(): void {
     this.loadProducts();
+    this.loadCustomers();
 
     const id = this.route.snapshot.paramMap.get('id');
     if (id) {
@@ -73,6 +81,12 @@ export class OrderFormComponent implements OnInit {
       this.title = 'Bestellung bearbeiten';
       this.loadOrder(this.orderId);
     }
+
+    // Setup customer name autocomplete filtering
+    this.filteredCustomers$ = this.form.get('customerName')!.valueChanges.pipe(
+      startWith(''),
+      map(value => this.filterCustomers(value || ''))
+    );
 
     // Watch for product selection
     this.form.get('selectedProduct')?.valueChanges.subscribe(productId => {
@@ -107,6 +121,35 @@ export class OrderFormComponent implements OnInit {
         this.notificationService.error('Produkte konnten nicht geladen werden');
       }
     });
+  }
+
+  loadCustomers(): void {
+    this.orderService.getCustomers().subscribe({
+      next: (customers: Customer[]) => {
+        this.customers = customers;
+      },
+      error: (error: any) => {
+        console.error('Failed to load customers:', error);
+      }
+    });
+  }
+
+  filterCustomers(value: string): Customer[] {
+    const filterValue = value.toLowerCase();
+    return this.customers.filter(customer =>
+      customer.name.toLowerCase().includes(filterValue)
+    );
+  }
+
+  onCustomerSelected(customerName: string): void {
+    // Find the customer by name and auto-fill phone and address
+    const customer = this.customers.find(c => c.name === customerName);
+    if (customer) {
+      this.form.patchValue({
+        customerPhone: customer.phone || '',
+        customerAddress: customer.address || ''
+      });
+    }
   }
 
   loadProductAvailability(productId: number): void {

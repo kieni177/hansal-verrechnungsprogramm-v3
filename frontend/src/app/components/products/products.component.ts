@@ -1,8 +1,9 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
-import { MatTableModule } from '@angular/material/table';
+import { MatTableModule, MatTableDataSource } from '@angular/material/table';
+import { MatSortModule, MatSort } from '@angular/material/sort';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
@@ -27,6 +28,7 @@ import { API_MESSAGES } from '../../shared/constants/app.constants';
     CommonModule,
     FormsModule,
     MatTableModule,
+    MatSortModule,
     MatButtonModule,
     MatIconModule,
     MatInputModule,
@@ -47,9 +49,16 @@ import { API_MESSAGES } from '../../shared/constants/app.constants';
 export class ProductsComponent extends BaseCrudComponent<Product> implements OnInit {
   searchTerm = '';
   displayedColumns = ['name', 'description', 'price', 'stockQuantity', 'actions'];
+  dataSource = new MatTableDataSource<Product>([]);
   expandedElement: Product | null = null;
   editingElement: Product | null = null;
   editedProduct: Product | null = null;
+
+  @ViewChild(MatSort) set sort(sort: MatSort) {
+    if (sort) {
+      this.dataSource.sort = sort;
+    }
+  }
 
   constructor(
     private productService: ProductService,
@@ -71,6 +80,7 @@ export class ProductsComponent extends BaseCrudComponent<Product> implements OnI
       .subscribe({
         next: (items) => {
           this.items = items;
+          this.dataSource.data = items;
           this.setLoading(false);
         },
         error: (error) => {
@@ -80,25 +90,8 @@ export class ProductsComponent extends BaseCrudComponent<Product> implements OnI
       });
   }
 
-  search(): void {
-    if (!this.searchTerm.trim()) {
-      this.loadAll();
-      return;
-    }
-
-    this.setLoading(true);
-    this.productService.search(this.searchTerm)
-      .pipe(takeUntil(this.destroy$))
-      .subscribe({
-        next: (items) => {
-          this.items = items;
-          this.setLoading(false);
-        },
-        error: (error) => {
-          this.notification.error(API_MESSAGES.ERROR.SEARCH);
-          this.handleError(error);
-        }
-      });
+  applyFilter(): void {
+    this.dataSource.filter = this.searchTerm.trim().toLowerCase();
   }
 
   add(): void {

@@ -45,6 +45,24 @@ mat-card {
   }
 }
 
+// Customer autocomplete option styling
+.customer-option {
+  display: flex;
+  flex-direction: column;
+  padding: 4px 0;
+
+  .customer-name {
+    font-weight: 500;
+    color: rgba(0, 0, 0, 0.87);
+  }
+
+  .customer-info {
+    color: rgba(0, 0, 0, 0.6);
+    font-size: 12px;
+    margin-top: 2px;
+  }
+}
+
 .add-product-form {
   display: grid;
   grid-template-columns: 3fr 1fr 1fr auto auto;

@@ -16,9 +16,26 @@
           <div class="customer-fields">
             <mat-form-field appearance="outline">
               <mat-label>Kundenname</mat-label>
-              <input matInput formControlName="customerName" required [disabled]="loading">
+              <input matInput
+                     formControlName="customerName"
+                     required
+                     [disabled]="loading"
+                     [matAutocomplete]="customerAuto">
               <mat-icon matPrefix>person</mat-icon>
               <mat-error>{{ getError('customerName') }}</mat-error>
+              <mat-autocomplete #customerAuto="matAutocomplete"
+                                (optionSelected)="onCustomerSelected($event.option.value)">
+                <mat-option *ngFor="let customer of filteredCustomers$ | async" [value]="customer.name">
+                  <div class="customer-option">
+                    <span class="customer-name">{{ customer.name }}</span>
+                    <span class="customer-info" *ngIf="customer.phone || customer.address">
+                      <small *ngIf="customer.phone">{{ customer.phone }}</small>
+                      <small *ngIf="customer.phone && customer.address"> | </small>
+                      <small *ngIf="customer.address">{{ customer.address }}</small>
+                    </span>
+                  </div>
+                </mat-option>
+              </mat-autocomplete>
             </mat-form-field>
 
             <mat-form-field appearance="outline">

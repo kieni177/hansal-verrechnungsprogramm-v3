@@ -15,7 +15,7 @@
     <div class="toolbar">
       <mat-form-field appearance="outline" class="search-field">
         <mat-label>Produkte suchen</mat-label>
-        <input matInput [(ngModel)]="searchTerm" (keyup)="search()" placeholder="Produktnamen eingeben...">
+        <input matInput [(ngModel)]="searchTerm" (keyup)="applyFilter()" placeholder="Produktnamen eingeben...">
         <mat-icon matPrefix>search</mat-icon>
       </mat-form-field>
       <div class="toolbar-buttons">
@@ -31,9 +31,9 @@
     </div>
 
     <div class="table-container">
-      <table mat-table [dataSource]="items" multiTemplateDataRows class="mat-elevation-z2">
+      <table mat-table [dataSource]="dataSource" matSort multiTemplateDataRows class="mat-elevation-z2">
         <ng-container matColumnDef="name">
-          <th mat-header-cell *matHeaderCellDef>Produktname</th>
+          <th mat-header-cell *matHeaderCellDef mat-sort-header>Produktname</th>
           <td mat-cell *matCellDef="let item">
             <span class="product-name">{{ item.name }}</span>
           </td>
@@ -47,14 +47,14 @@
         </ng-container>
 
         <ng-container matColumnDef="price">
-          <th mat-header-cell *matHeaderCellDef>Preis</th>
+          <th mat-header-cell *matHeaderCellDef mat-sort-header>Preis</th>
           <td mat-cell *matCellDef="let item">
             <span class="price">€ {{ item.price | number:'1.2-2' }}</span>
           </td>
         </ng-container>
 
         <ng-container matColumnDef="stockQuantity">
-          <th mat-header-cell *matHeaderCellDef>Lagerbestand (g)</th>
+          <th mat-header-cell *matHeaderCellDef mat-sort-header>Lagerbestand (g)</th>
           <td mat-cell *matCellDef="let item">
             <span class="stock-badge" [class.low-stock]="item.stockQuantity < 10">
               {{ item.stockQuantity }} g

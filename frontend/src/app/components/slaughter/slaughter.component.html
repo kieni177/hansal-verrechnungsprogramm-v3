@@ -13,6 +13,11 @@
 
   <div *ngIf="!isLoading" class="content-section">
     <div class="toolbar">
+      <mat-form-field appearance="outline" class="search-field">
+        <mat-label>Schlachtungen suchen</mat-label>
+        <input matInput [(ngModel)]="searchTerm" (keyup)="applyFilter()" placeholder="Ohrmarke suchen...">
+        <mat-icon matPrefix>search</mat-icon>
+      </mat-form-field>
       <button mat-raised-button color="primary" (click)="add()" class="add-button">
         <mat-icon>add</mat-icon>
         Schlachtung erfassen
@@ -20,28 +25,28 @@
     </div>
 
     <div class="table-container">
-      <table mat-table [dataSource]="items" multiTemplateDataRows class="mat-elevation-z2">
+      <table mat-table [dataSource]="dataSource" matSort multiTemplateDataRows class="mat-elevation-z2">
         <ng-container matColumnDef="id">
-          <th mat-header-cell *matHeaderCellDef>Datensatz-Nr.</th>
+          <th mat-header-cell *matHeaderCellDef mat-sort-header>Datensatz-Nr.</th>
           <td mat-cell *matCellDef="let item">
             <span class="record-number">{{ item.id }}</span>
           </td>
         </ng-container>
 
         <ng-container matColumnDef="cowTag">
-          <th mat-header-cell *matHeaderCellDef>Ohrmarke</th>
+          <th mat-header-cell *matHeaderCellDef mat-sort-header>Ohrmarke</th>
           <td mat-cell *matCellDef="let item">
             <span class="cow-tag">{{ item.cowTag || item.cowId || 'N/A' }}</span>
           </td>
         </ng-container>
 
         <ng-container matColumnDef="slaughterDate">
-          <th mat-header-cell *matHeaderCellDef>Schlachtdatum</th>
+          <th mat-header-cell *matHeaderCellDef mat-sort-header>Schlachtdatum</th>
           <td mat-cell *matCellDef="let item">{{ item.slaughterDate | date:'mediumDate' }}</td>
         </ng-container>
 
         <ng-container matColumnDef="totalWeight">
-          <th mat-header-cell *matHeaderCellDef>Gesamtgewicht</th>
+          <th mat-header-cell *matHeaderCellDef mat-sort-header>Gesamtgewicht</th>
           <td mat-cell *matCellDef="let item">
             <span class="weight-value">{{ item.totalWeight | number:'1.2-2' }} kg</span>
           </td>

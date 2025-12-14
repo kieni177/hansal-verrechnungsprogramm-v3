@@ -13,42 +13,112 @@
 
   <div *ngIf="!isLoading" class="content-section">
     <div class="toolbar">
+      <mat-form-field appearance="outline" class="search-field">
+        <mat-label>Bestellungen suchen</mat-label>
+        <input matInput [(ngModel)]="searchTerm" (keyup)="applyFilter()" placeholder="Kunde oder Bestellnummer...">
+        <mat-icon matPrefix>search</mat-icon>
+      </mat-form-field>
+      <mat-form-field appearance="outline" class="filter-field">
+        <mat-label>Status</mat-label>
+        <mat-select [(ngModel)]="statusFilter" (selectionChange)="applyFilter()">
+          <mat-option value="">Alle</mat-option>
+          <mat-option *ngFor="let status of orderStatuses" [value]="status">{{ status }}</mat-option>
+        </mat-select>
+      </mat-form-field>
       <button mat-raised-button color="primary" (click)="add()" class="add-button">
         <mat-icon>add</mat-icon>
         Bestellung erstellen
       </button>
     </div>
 
+    <!-- Action Bar for selected items -->
+    <div class="action-bar" *ngIf="items.length > 0">
+      <div class="selection-info">
+        <span *ngIf="selection.selected.length > 0">
+          {{ selection.selected.length }} von {{ items.length }} ausgewählt
+        </span>
+        <span *ngIf="selection.selected.length === 0" class="hint">
+          Bestellungen auswählen um Rechnungen zu erstellen
+        </span>
+      </div>
+      <div class="action-buttons">
+        <button mat-raised-button color="primary"
+                (click)="createInvoicesForSelected()"
+                [disabled]="selection.selected.length === 0 || isProcessing"
+                matTooltip="Rechnungen für ausgewählte Bestellungen erstellen">
+          <mat-icon>receipt</mat-icon>
+          <span *ngIf="!isProcessing">Rechnungen erstellen ({{ selection.selected.length }})</span>
+          <span *ngIf="isProcessing">Wird verarbeitet...</span>
+        </button>
+        <button mat-raised-button color="accent"
+                (click)="updateInvoicesForSelected()"
+                [disabled]="selection.selected.length === 0 || isProcessing"
+                matTooltip="Bestehende Rechnungen aktualisieren/neu erstellen">
+          <mat-icon>refresh</mat-icon>
+          Rechnungen aktualisieren
+        </button>
+      </div>
+    </div>
+
     <div class="table-container">
-      <table mat-table [dataSource]="items" multiTemplateDataRows class="mat-elevation-z2">
+      <table mat-table [dataSource]="dataSource" matSort multiTemplateDataRows class="mat-elevation-z2">
+        <!-- Checkbox Column -->
+        <ng-container matColumnDef="select">
+          <th mat-header-cell *matHeaderCellDef>
+            <mat-checkbox (change)="$event ? toggleAllRows() : null"
+                          [checked]="selection.hasValue() && isAllSelected()"
+                          [indeterminate]="selection.hasValue() && !isAllSelected()">
+            </mat-checkbox>
+          </th>
+          <td mat-cell *matCellDef="let row">
+            <mat-checkbox (click)="$event.stopPropagation()"
+                          (change)="$event ? selection.toggle(row) : null"
+                          [checked]="selection.isSelected(row)">
+            </mat-checkbox>
+          </td>
+        </ng-container>
+
         <ng-container matColumnDef="id">
-          <th mat-header-cell *matHeaderCellDef>Bestellung-Nr.</th>
+          <th mat-header-cell *matHeaderCellDef mat-sort-header>Bestellung-Nr.</th>
           <td mat-cell *matCellDef="let item">
             <span class="order-number">{{ item.id }}</span>
           </td>
         </ng-container>
 
         <ng-container matColumnDef="customerName">
-          <th mat-header-cell *matHeaderCellDef>Kunde</th>
+          <th mat-header-cell *matHeaderCellDef mat-sort-header>Kunde</th>
           <td mat-cell *matCellDef="let item">{{ item.customerName }}</td>
         </ng-container>
 
         <ng-container matColumnDef="orderDate">
-          <th mat-header-cell *matHeaderCellDef>Bestelldatum</th>
+          <th mat-header-cell *matHeaderCellDef mat-sort-header>Bestelldatum</th>
           <td mat-cell *matCellDef="let item">{{ item.orderDate | date:'mediumDate' }}</td>
         </ng-container>
 
         <ng-container matColumnDef="totalAmount">
-          <th mat-header-cell *matHeaderCellDef>Gesamtbetrag</th>
+          <th mat-header-cell *matHeaderCellDef mat-sort-header>Gesamtbetrag</th>
           <td mat-cell *matCellDef="let item">
             <span class="total-amount">€ {{ item.totalAmount | number:'1.2-2' }}</span>
           </td>
         </ng-container>
 
         <ng-container matColumnDef="status">
-          <th mat-header-cell *matHeaderCellDef>Status</th>
+          <th mat-header-cell *matHeaderCellDef mat-sort-header>Status</th>
           <td mat-cell *matCellDef="let item">
             <mat-chip [color]="getStatusColor(item.status)">{{ item.status }}</mat-chip>
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="invoice">
+          <th mat-header-cell *matHeaderCellDef>Rechnung</th>
+          <td mat-cell *matCellDef="let item">
+            <div class="invoice-status" *ngIf="hasInvoice(item)">
+              <mat-icon class="invoice-exists" matTooltip="Rechnung vorhanden: {{ getInvoice(item)?.invoiceNumber }}">receipt</mat-icon>
+              <span class="invoice-number">{{ getInvoice(item)?.invoiceNumber }}</span>
+            </div>
+            <div class="invoice-status no-invoice" *ngIf="!hasInvoice(item)">
+              <mat-icon matTooltip="Keine Rechnung">receipt_long</mat-icon>
+            </div>
           </td>
         </ng-container>
 

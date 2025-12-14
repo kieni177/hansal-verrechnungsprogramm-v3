@@ -1,5 +1,6 @@
 package com.hansal.verrechnungsprogramm.service;
 
+import com.hansal.verrechnungsprogramm.dto.CustomerDTO;
 import com.hansal.verrechnungsprogramm.model.*;
 import com.hansal.verrechnungsprogramm.repository.MeatCutRepository;
 import com.hansal.verrechnungsprogramm.repository.OrderRepository;
@@ -8,7 +9,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
-import java.util.List;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -112,5 +114,38 @@ public class OrderService {
         Order order = getOrderById(id);
         order.setStatus(status);
         return orderRepository.save(order);
+    }
+
+    /**
+     * Get unique customers from all orders.
+     * Returns the most recent contact information for each customer.
+     */
+    public List<CustomerDTO> getUniqueCustomers() {
+        List<Order> allOrders = orderRepository.findAll();
+
+        // Group orders by customer name (case-insensitive) and get the most recent order for each
+        Map<String, Order> latestOrderByCustomer = allOrders.stream()
+                .filter(order -> order.getCustomerName() != null && !order.getCustomerName().trim().isEmpty())
+                .collect(Collectors.toMap(
+                        order -> order.getCustomerName().toLowerCase().trim(),
+                        order -> order,
+                        (existing, replacement) -> {
+                            // Keep the order with the most recent date
+                            if (existing.getOrderDate() == null) return replacement;
+                            if (replacement.getOrderDate() == null) return existing;
+                            return replacement.getOrderDate().isAfter(existing.getOrderDate()) ? replacement : existing;
+                        }
+                ));
+
+        // Convert to CustomerDTO list
+        return latestOrderByCustomer.values().stream()
+                .map(order -> new CustomerDTO(
+                        order.getCustomerName(),
+                        order.getCustomerPhone(),
+                        order.getCustomerAddress(),
+                        order.getOrderDate()
+                ))
+                .sorted(Comparator.comparing(CustomerDTO::getName, String.CASE_INSENSITIVE_ORDER))
+                .collect(Collectors.toList());
     }
 }

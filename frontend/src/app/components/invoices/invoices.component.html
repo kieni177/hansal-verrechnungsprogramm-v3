@@ -12,6 +12,22 @@
   </div>
 
   <div *ngIf="!isLoading" class="content-section">
+    <!-- Filter Bar -->
+    <div class="toolbar">
+      <mat-form-field appearance="outline" class="search-field">
+        <mat-label>Rechnungen suchen</mat-label>
+        <input matInput [(ngModel)]="searchTerm" (keyup)="applyFilter()" placeholder="Rechnungsnr. oder Kunde...">
+        <mat-icon matPrefix>search</mat-icon>
+      </mat-form-field>
+      <mat-form-field appearance="outline" class="filter-field">
+        <mat-label>Status</mat-label>
+        <mat-select [(ngModel)]="statusFilter" (selectionChange)="applyFilter()">
+          <mat-option value="">Alle</mat-option>
+          <mat-option *ngFor="let status of invoiceStatuses" [value]="status">{{ status }}</mat-option>
+        </mat-select>
+      </mat-form-field>
+    </div>
+
     <!-- Action Bar -->
     <div class="action-bar" *ngIf="items.length > 0">
       <div class="selection-info">
@@ -20,26 +36,43 @@
         </span>
       </div>
       <div class="action-buttons">
-        <button mat-raised-button color="primary"
+        <!-- Separate PDFs -->
+        <button mat-raised-button
                 (click)="downloadSelected()"
                 [disabled]="selection.selected.length === 0 || isDownloading"
-                matTooltip="Ausgewählte PDFs herunterladen">
+                matTooltip="Ausgewählte als einzelne PDFs herunterladen">
           <mat-icon>download</mat-icon>
-          <span *ngIf="!isDownloading">Ausgewählte herunterladen ({{ selection.selected.length }})</span>
+          <span *ngIf="!isDownloading">Einzeln ({{ selection.selected.length }})</span>
           <span *ngIf="isDownloading">Wird heruntergeladen...</span>
         </button>
         <button mat-raised-button
                 (click)="downloadAll()"
                 [disabled]="items.length === 0 || isDownloading"
-                matTooltip="Alle PDFs herunterladen">
+                matTooltip="Alle als einzelne PDFs herunterladen">
           <mat-icon>download_for_offline</mat-icon>
-          Alle herunterladen
+          Alle einzeln
+        </button>
+
+        <!-- Combined PDFs -->
+        <button mat-raised-button color="primary"
+                (click)="downloadSelectedCombined()"
+                [disabled]="selection.selected.length === 0 || isDownloading"
+                matTooltip="Ausgewählte als ein Sammeldokument herunterladen">
+          <mat-icon>picture_as_pdf</mat-icon>
+          <span>Sammel-PDF ({{ selection.selected.length }})</span>
+        </button>
+        <button mat-raised-button color="accent"
+                (click)="downloadAllCombined()"
+                [disabled]="items.length === 0 || isDownloading"
+                matTooltip="Alle Rechnungen als ein Sammeldokument herunterladen">
+          <mat-icon>collections_bookmark</mat-icon>
+          Alle als Sammel-PDF
         </button>
       </div>
     </div>
 
     <div class="table-container">
-      <table mat-table [dataSource]="items" multiTemplateDataRows class="mat-elevation-z2">
+      <table mat-table [dataSource]="dataSource" matSort multiTemplateDataRows class="mat-elevation-z2">
         <!-- Checkbox Column -->
         <ng-container matColumnDef="select">
           <th mat-header-cell *matHeaderCellDef>
@@ -57,24 +90,24 @@
         </ng-container>
 
         <ng-container matColumnDef="invoiceNumber">
-          <th mat-header-cell *matHeaderCellDef>Rechnungsnr.</th>
+          <th mat-header-cell *matHeaderCellDef mat-sort-header>Rechnungsnr.</th>
           <td mat-cell *matCellDef="let item">
             <span class="invoice-number">{{ item.invoiceNumber }}</span>
           </td>
         </ng-container>
 
         <ng-container matColumnDef="customerName">
-          <th mat-header-cell *matHeaderCellDef>Kunde</th>
+          <th mat-header-cell *matHeaderCellDef mat-sort-header>Kunde</th>
           <td mat-cell *matCellDef="let item">{{ item.order.customerName }}</td>
         </ng-container>
 
         <ng-container matColumnDef="issueDate">
-          <th mat-header-cell *matHeaderCellDef>Ausstellungsdatum</th>
+          <th mat-header-cell *matHeaderCellDef mat-sort-header>Ausstellungsdatum</th>
           <td mat-cell *matCellDef="let item">{{ item.issueDate | date:'mediumDate' }}</td>
         </ng-container>
 
         <ng-container matColumnDef="grandTotal">
-          <th mat-header-cell *matHeaderCellDef>Gesamtbetrag</th>
+          <th mat-header-cell *matHeaderCellDef mat-sort-header>Gesamtbetrag</th>
           <td mat-cell *matCellDef="let item">
             <span class="total-amount">€ {{ item.grandTotal | number:'1.2-2' }}</span>
           </td>
@@ -86,7 +119,7 @@
         </ng-container>
 
         <ng-container matColumnDef="status">
-          <th mat-header-cell *matHeaderCellDef>Status</th>
+          <th mat-header-cell *matHeaderCellDef mat-sort-header>Status</th>
           <td mat-cell *matCellDef="let item">
             <mat-chip [color]="getStatusColor(item.status)">{{ item.status }}</mat-chip>
           </td>
