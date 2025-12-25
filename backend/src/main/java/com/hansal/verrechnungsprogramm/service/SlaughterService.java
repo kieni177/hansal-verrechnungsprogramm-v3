@@ -5,6 +5,7 @@ import com.hansal.verrechnungsprogramm.model.Product;
 import com.hansal.verrechnungsprogramm.model.Slaughter;
 import com.hansal.verrechnungsprogramm.repository.SlaughterRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -12,6 +13,7 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 @Transactional
@@ -21,20 +23,31 @@ public class SlaughterService {
     private final ProductService productService;
 
     public List<Slaughter> getAllSlaughters() {
-        return slaughterRepository.findAll();
+        List<Slaughter> slaughters = slaughterRepository.findAll();
+        log.info("Listed slaughters: count={}", slaughters.size());
+        return slaughters;
     }
 
     public Slaughter getSlaughterById(Long id) {
-        return slaughterRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Slaughter record not found with id: " + id));
+        Slaughter slaughter = slaughterRepository.findById(id)
+                .orElseThrow(() -> {
+                    log.warn("Slaughter not found: id={}", id);
+                    return new RuntimeException("Slaughter record not found with id: " + id);
+                });
+        log.info("Fetched slaughter: id={}, cowTag={}", id, slaughter.getCowTag());
+        return slaughter;
     }
 
     public List<Slaughter> searchByCowTag(String cowTag) {
-        return slaughterRepository.findByCowTagContainingIgnoreCase(cowTag);
+        List<Slaughter> slaughters = slaughterRepository.findByCowTagContainingIgnoreCase(cowTag);
+        log.info("Searched slaughters: query='{}', count={}", cowTag, slaughters.size());
+        return slaughters;
     }
 
     public List<Slaughter> getSlaughtersByDateRange(LocalDate startDate, LocalDate endDate) {
-        return slaughterRepository.findBySlaughterDateBetween(startDate, endDate);
+        List<Slaughter> slaughters = slaughterRepository.findBySlaughterDateBetween(startDate, endDate);
+        log.info("Filtered slaughters by date: range={} to {}, count={}", startDate, endDate, slaughters.size());
+        return slaughters;
     }
 
     public Slaughter createSlaughter(Slaughter slaughter) {
@@ -58,7 +71,10 @@ public class SlaughterService {
                 }
             });
         }
-        return slaughterRepository.save(slaughter);
+        Slaughter savedSlaughter = slaughterRepository.save(slaughter);
+        int meatCutCount = savedSlaughter.getMeatCuts() != null ? savedSlaughter.getMeatCuts().size() : 0;
+        log.info("Created slaughter: id={}, cowTag={}, meatCuts={}", savedSlaughter.getId(), savedSlaughter.getCowTag(), meatCutCount);
+        return savedSlaughter;
     }
 
     public Slaughter updateSlaughter(Long id, Slaughter slaughterDetails) {
@@ -108,11 +124,15 @@ public class SlaughterService {
             });
         }
 
-        return slaughterRepository.save(slaughter);
+        Slaughter savedSlaughter = slaughterRepository.save(slaughter);
+        int meatCutCount = savedSlaughter.getMeatCuts() != null ? savedSlaughter.getMeatCuts().size() : 0;
+        log.info("Updated slaughter: id={}, cowTag={}, meatCuts={}", savedSlaughter.getId(), savedSlaughter.getCowTag(), meatCutCount);
+        return savedSlaughter;
     }
 
     public void deleteSlaughter(Long id) {
         Slaughter slaughter = getSlaughterById(id);
+        String cowTag = slaughter.getCowTag();
 
         // Remove stock from products when deleting slaughter (using BigDecimal for precision)
         if (slaughter.getMeatCuts() != null) {
@@ -131,5 +151,6 @@ public class SlaughterService {
         }
 
         slaughterRepository.delete(slaughter);
+        log.info("Deleted slaughter: id={}, cowTag={}", id, cowTag);
     }
 }

@@ -5,6 +5,7 @@ import com.hansal.verrechnungsprogramm.model.Product;
 import com.hansal.verrechnungsprogramm.repository.MeatCutRepository;
 import com.hansal.verrechnungsprogramm.repository.ProductRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -12,6 +13,7 @@ import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 @Transactional
@@ -21,22 +23,33 @@ public class ProductService {
     private final MeatCutRepository meatCutRepository;
 
     public List<Product> getAllProducts() {
-        return productRepository.findAll();
+        List<Product> products = productRepository.findAll();
+        log.info("Listed products: count={}", products.size());
+        return products;
     }
 
     public Product getProductById(Long id) {
-        return productRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Product not found with id: " + id));
+        Product product = productRepository.findById(id)
+                .orElseThrow(() -> {
+                    log.warn("Product not found: id={}", id);
+                    return new RuntimeException("Product not found with id: " + id);
+                });
+        log.info("Fetched product: id={}, name={}", id, product.getName());
+        return product;
     }
 
     public List<Product> searchProducts(String name) {
-        return productRepository.findByNameContainingIgnoreCase(name);
+        List<Product> products = productRepository.findByNameContainingIgnoreCase(name);
+        log.info("Searched products: query='{}', count={}", name, products.size());
+        return products;
     }
 
     public Product createProduct(Product product) {
         // Initialize stock to 0 - it will be updated only through slaughters
         product.setStockQuantity(BigDecimal.ZERO);
-        return productRepository.save(product);
+        Product savedProduct = productRepository.save(product);
+        log.info("Created product: id={}, name={}, price={}", savedProduct.getId(), savedProduct.getName(), savedProduct.getPrice());
+        return savedProduct;
     }
 
     public Product updateProduct(Long id, Product productDetails) {
@@ -48,7 +61,9 @@ public class ProductService {
         product.setMeatCutType(productDetails.getMeatCutType());
         // Stock quantity is NOT updated here - it's managed only through slaughters
         // Use updateProductStock() instead for stock changes
-        return productRepository.save(product);
+        Product savedProduct = productRepository.save(product);
+        log.info("Updated product: id={}, name={}", savedProduct.getId(), savedProduct.getName());
+        return savedProduct;
     }
 
     /**
@@ -57,13 +72,18 @@ public class ProductService {
      */
     public Product updateProductStock(Long id, BigDecimal newStockQuantity) {
         Product product = getProductById(id);
+        BigDecimal oldStock = product.getStockQuantity();
         product.setStockQuantity(newStockQuantity);
-        return productRepository.save(product);
+        Product saved = productRepository.save(product);
+        log.info("Updated product stock: id={}, name={}, stock={} -> {} kg", id, product.getName(), oldStock, newStockQuantity);
+        return saved;
     }
 
     public void deleteProduct(Long id) {
         Product product = getProductById(id);
+        String name = product.getName();
         productRepository.delete(product);
+        log.info("Deleted product: id={}, name={}", id, name);
     }
 
     public BigDecimal getAvailableStock(Product product) {
@@ -89,6 +109,7 @@ public class ProductService {
      * WARNING: This deletes all existing products!
      */
     public List<Product> initializeDefaultProducts() {
+        log.info("Initialized default products: deleting existing products");
         // Delete all existing products
         productRepository.deleteAll();
 
@@ -130,7 +151,9 @@ public class ProductService {
         defaultProducts.add(createDefaultProduct("Bio-Schmalz", "Reines Schweineschmalz", new BigDecimal("8.00"), "Fett"));
 
         // Save all products
-        return productRepository.saveAll(defaultProducts);
+        List<Product> savedProducts = productRepository.saveAll(defaultProducts);
+        log.info("Initialized {} default products", savedProducts.size());
+        return savedProducts;
     }
 
     private Product createDefaultProduct(String name, String description, BigDecimal price, String meatCutType) {

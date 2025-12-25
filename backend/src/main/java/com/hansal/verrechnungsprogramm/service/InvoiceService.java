@@ -19,6 +19,7 @@ import com.itextpdf.layout.properties.TextAlignment;
 import com.itextpdf.layout.properties.UnitValue;
 import com.itextpdf.layout.properties.VerticalAlignment;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -32,6 +33,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Optional;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 @Transactional
@@ -41,21 +43,35 @@ public class InvoiceService {
     private final OrderService orderService;
 
     public List<Invoice> getAllInvoices() {
-        return invoiceRepository.findAll();
+        List<Invoice> invoices = invoiceRepository.findAll();
+        log.info("Listed invoices: count={}", invoices.size());
+        return invoices;
     }
 
     public Invoice getInvoiceById(Long id) {
-        return invoiceRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Invoice not found with id: " + id));
+        Invoice invoice = invoiceRepository.findById(id)
+                .orElseThrow(() -> {
+                    log.warn("Invoice not found: id={}", id);
+                    return new RuntimeException("Invoice not found with id: " + id);
+                });
+        log.info("Fetched invoice: id={}, customer={}", id, invoice.getOrder().getCustomerName());
+        return invoice;
     }
 
     public Invoice getInvoiceByNumber(String invoiceNumber) {
-        return invoiceRepository.findByInvoiceNumber(invoiceNumber)
-                .orElseThrow(() -> new RuntimeException("Invoice not found with number: " + invoiceNumber));
+        Invoice invoice = invoiceRepository.findByInvoiceNumber(invoiceNumber)
+                .orElseThrow(() -> {
+                    log.warn("Invoice not found: number={}", invoiceNumber);
+                    return new RuntimeException("Invoice not found with number: " + invoiceNumber);
+                });
+        log.info("Fetched invoice: number={}, customer={}", invoiceNumber, invoice.getOrder().getCustomerName());
+        return invoice;
     }
 
     public Optional<Invoice> getInvoiceByOrderId(Long orderId) {
-        return invoiceRepository.findByOrderId(orderId);
+        Optional<Invoice> invoice = invoiceRepository.findByOrderId(orderId);
+        log.info("Fetched invoice for order: orderId={}, found={}", orderId, invoice.isPresent());
+        return invoice;
     }
 
     public Invoice createInvoiceFromOrder(Long orderId) {
@@ -68,7 +84,9 @@ public class InvoiceService {
         invoice.setCreatedBy("Administrator"); // TODO: Get from authenticated user context
         invoice.calculateTotals();
 
-        return invoiceRepository.save(invoice);
+        Invoice savedInvoice = invoiceRepository.save(invoice);
+        log.info("Created invoice: id={}, orderId={}, customer={}, total={}", savedInvoice.getId(), orderId, order.getCustomerName(), savedInvoice.getTotalAmount());
+        return savedInvoice;
     }
 
     public Invoice updateInvoice(Long id, Invoice invoiceDetails) {
@@ -79,12 +97,16 @@ public class InvoiceService {
         invoice.setNotes(invoiceDetails.getNotes());
         invoice.setStatus(invoiceDetails.getStatus());
         invoice.calculateTotals();
-        return invoiceRepository.save(invoice);
+        Invoice savedInvoice = invoiceRepository.save(invoice);
+        log.info("Updated invoice: id={}, status={}", savedInvoice.getId(), savedInvoice.getStatus());
+        return savedInvoice;
     }
 
     public void deleteInvoice(Long id) {
         Invoice invoice = getInvoiceById(id);
+        String customer = invoice.getOrder().getCustomerName();
         invoiceRepository.delete(invoice);
+        log.info("Deleted invoice: id={}, customer={}", id, customer);
     }
 
     public byte[] generateInvoicePdf(Long invoiceId) {
@@ -120,7 +142,7 @@ public class InvoiceService {
                     logoCell.add(logo);
                 }
             } catch (Exception e) {
-                System.err.println("Could not load logo: " + e.getMessage());
+                log.warn("Could not load logo: {}", e.getMessage());
             }
             headerTable.addCell(logoCell);
 
@@ -317,9 +339,11 @@ public class InvoiceService {
 
             document.close();
 
+            log.info("Generated PDF: invoiceId={}, customer={}", invoiceId, invoice.getOrder().getCustomerName());
             return baos.toByteArray();
 
         } catch (Exception e) {
+            log.error("PDF generation failed: invoiceId={}, error={}", invoiceId, e.getMessage(), e);
             throw new RuntimeException("Error generating PDF: " + e.getMessage(), e);
         }
     }
@@ -330,6 +354,7 @@ public class InvoiceService {
                 .toList();
 
         if (invoices.isEmpty()) {
+            log.warn("Combined PDF failed: no invoices found for ids={}", invoiceIds);
             throw new RuntimeException("No invoices found for the given IDs");
         }
 
@@ -355,9 +380,11 @@ public class InvoiceService {
             }
 
             document.close();
+            log.info("Generated combined PDF: count={}", invoices.size());
             return baos.toByteArray();
 
         } catch (Exception e) {
+            log.error("Combined PDF generation failed: count={}, error={}", invoiceIds.size(), e.getMessage(), e);
             throw new RuntimeException("Error generating combined PDF: " + e.getMessage(), e);
         }
     }
@@ -382,7 +409,7 @@ public class InvoiceService {
                 logoCell.add(logo);
             }
         } catch (Exception e) {
-            System.err.println("Could not load logo: " + e.getMessage());
+            log.warn("Could not load logo: {}", e.getMessage());
         }
         headerTable.addCell(logoCell);
 

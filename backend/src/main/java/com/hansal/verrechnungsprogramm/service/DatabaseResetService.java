@@ -3,6 +3,7 @@ package com.hansal.verrechnungsprogramm.service;
 import com.hansal.verrechnungsprogramm.model.Product;
 import com.hansal.verrechnungsprogramm.repository.*;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -10,6 +11,7 @@ import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.Map;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class DatabaseResetService {
@@ -32,6 +34,7 @@ public class DatabaseResetService {
 
         Map<String, Integer> result = new HashMap<>();
         result.put("productsLoaded", productsLoaded);
+        log.info("Reset database: cleared all data, loaded {} products", productsLoaded);
         return result;
     }
 

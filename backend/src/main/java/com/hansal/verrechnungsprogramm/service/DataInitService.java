@@ -3,6 +3,7 @@ package com.hansal.verrechnungsprogramm.service;
 import com.hansal.verrechnungsprogramm.model.Product;
 import com.hansal.verrechnungsprogramm.repository.ProductRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -10,6 +11,7 @@ import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 @Transactional
@@ -62,16 +64,20 @@ public class DataInitService {
             }
         }
 
+        log.info("Initialized default products: count={}, overwrite={}", createdProducts.size(), overwrite);
         return createdProducts;
     }
 
     public void clearAllProducts() {
         productRepository.deleteAll();
+        log.info("Cleared all products");
     }
 
     public List<Product> resetProducts() {
         clearAllProducts();
-        return initializeDefaultProducts(false);
+        List<Product> products = initializeDefaultProducts(false);
+        log.info("Reset products: count={}", products.size());
+        return products;
     }
 
     private Product createProduct(String name, String description, double price, String meatCutType, int stockQuantity) {

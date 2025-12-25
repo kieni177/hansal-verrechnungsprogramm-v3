@@ -5,6 +5,7 @@ import com.hansal.verrechnungsprogramm.model.*;
 import com.hansal.verrechnungsprogramm.repository.MeatCutRepository;
 import com.hansal.verrechnungsprogramm.repository.OrderRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -12,6 +13,7 @@ import java.math.BigDecimal;
 import java.util.*;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 @Transactional
@@ -22,20 +24,31 @@ public class OrderService {
     private final MeatCutRepository meatCutRepository;
 
     public List<Order> getAllOrders() {
-        return orderRepository.findAll();
+        List<Order> orders = orderRepository.findAll();
+        log.info("Listed orders: count={}", orders.size());
+        return orders;
     }
 
     public Order getOrderById(Long id) {
-        return orderRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Order not found with id: " + id));
+        Order order = orderRepository.findById(id)
+                .orElseThrow(() -> {
+                    log.warn("Order not found: id={}", id);
+                    return new RuntimeException("Order not found with id: " + id);
+                });
+        log.info("Fetched order: id={}, customer={}", id, order.getCustomerName());
+        return order;
     }
 
     public List<Order> searchOrdersByCustomerName(String customerName) {
-        return orderRepository.findByCustomerNameContainingIgnoreCase(customerName);
+        List<Order> orders = orderRepository.findByCustomerNameContainingIgnoreCase(customerName);
+        log.info("Searched orders: query='{}', count={}", customerName, orders.size());
+        return orders;
     }
 
     public List<Order> getOrdersByStatus(OrderStatus status) {
-        return orderRepository.findByStatus(status);
+        List<Order> orders = orderRepository.findByStatus(status);
+        log.info("Filtered orders by status: status={}, count={}", status, orders.size());
+        return orders;
     }
 
     public Order createOrder(Order order) {
@@ -59,7 +72,9 @@ public class OrderService {
         }
 
         order.calculateTotal();
-        return orderRepository.save(order);
+        Order savedOrder = orderRepository.save(order);
+        log.info("Created order: id={}, customer={}, total={}", savedOrder.getId(), savedOrder.getCustomerName(), savedOrder.getTotalAmount());
+        return savedOrder;
     }
 
     public Order updateOrder(Long id, Order orderDetails) {
@@ -102,18 +117,25 @@ public class OrderService {
             order.addItem(item);
         }
 
-        return orderRepository.save(order);
+        Order savedOrder = orderRepository.save(order);
+        log.info("Updated order: id={}, customer={}", savedOrder.getId(), savedOrder.getCustomerName());
+        return savedOrder;
     }
 
     public void deleteOrder(Long id) {
         Order order = getOrderById(id);
+        String customerName = order.getCustomerName();
         orderRepository.delete(order);
+        log.info("Deleted order: id={}, customer={}", id, customerName);
     }
 
     public Order updateOrderStatus(Long id, OrderStatus status) {
         Order order = getOrderById(id);
+        OrderStatus oldStatus = order.getStatus();
         order.setStatus(status);
-        return orderRepository.save(order);
+        Order savedOrder = orderRepository.save(order);
+        log.info("Updated order status: id={}, status={} -> {}", id, oldStatus, status);
+        return savedOrder;
     }
 
     /**
@@ -138,7 +160,7 @@ public class OrderService {
                 ));
 
         // Convert to CustomerDTO list
-        return latestOrderByCustomer.values().stream()
+        List<CustomerDTO> customers = latestOrderByCustomer.values().stream()
                 .map(order -> new CustomerDTO(
                         order.getCustomerName(),
                         order.getCustomerPhone(),
@@ -147,5 +169,7 @@ public class OrderService {
                 ))
                 .sorted(Comparator.comparing(CustomerDTO::getName, String.CASE_INSENSITIVE_ORDER))
                 .collect(Collectors.toList());
+        log.info("Listed customers: count={}", customers.size());
+        return customers;
     }
 }
