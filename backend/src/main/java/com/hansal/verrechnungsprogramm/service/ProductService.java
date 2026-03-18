@@ -105,13 +105,16 @@ public class ProductService {
     }
 
     /**
-     * Resets all products and initializes with default products.
-     * WARNING: This deletes all existing products!
+     * Resets products to defaults. Deletes unreferenced products safely,
+     * then creates default products (skipping names that already exist).
      */
     public List<Product> initializeDefaultProducts() {
-        log.info("Initialized default products: deleting existing products");
-        // Delete all existing products
-        productRepository.deleteAll();
+        // Delete products not referenced by orders or meat cuts
+        List<Product> unreferenced = productRepository.findUnreferencedProducts();
+        if (!unreferenced.isEmpty()) {
+            log.info("Deleting {} unreferenced products", unreferenced.size());
+            productRepository.deleteAll(unreferenced);
+        }
 
         // Create default products
         List<Product> defaultProducts = new ArrayList<>();
@@ -150,10 +153,17 @@ public class ProductService {
         defaultProducts.add(createDefaultProduct("Bio-Honig", "Blütenhonig aus eigener Imkerei", new BigDecimal("15.00"), "Honig"));
         defaultProducts.add(createDefaultProduct("Bio-Schmalz", "Reines Schweineschmalz", new BigDecimal("8.00"), "Fett"));
 
-        // Save all products
-        List<Product> savedProducts = productRepository.saveAll(defaultProducts);
-        log.info("Initialized {} default products", savedProducts.size());
-        return savedProducts;
+        // Only add products that don't already exist by name
+        List<String> existingNames = productRepository.findAll().stream()
+                .map(Product::getName)
+                .toList();
+        List<Product> toCreate = defaultProducts.stream()
+                .filter(p -> existingNames.stream().noneMatch(n -> n.equalsIgnoreCase(p.getName())))
+                .toList();
+
+        List<Product> savedProducts = productRepository.saveAll(toCreate);
+        log.info("Initialized {} new default products ({} already existed)", savedProducts.size(), defaultProducts.size() - savedProducts.size());
+        return productRepository.findAll();
     }
 
     private Product createDefaultProduct(String name, String description, BigDecimal price, String meatCutType) {
