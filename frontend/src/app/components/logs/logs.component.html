@@ -1,0 +1,121 @@
+<div class="logs-container">
+  <mat-card class="logs-card">
+    <mat-card-header>
+      <mat-card-title>
+        <mat-icon>terminal</mat-icon>
+        System Logs
+      </mat-card-title>
+      <mat-card-subtitle>
+        Echtzeit-Protokoll aller Benutzeraktionen
+      </mat-card-subtitle>
+    </mat-card-header>
+
+    <mat-card-content>
+      <!-- Toolbar -->
+      <div class="logs-toolbar">
+        <div class="toolbar-left">
+          <!-- Level Filter -->
+          <mat-form-field appearance="outline" class="level-select">
+            <mat-label>Log-Level</mat-label>
+            <mat-select [(value)]="selectedLevel" (selectionChange)="onLevelChange()">
+              @for (level of levels; track level) {
+                <mat-option [value]="level">{{ level }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+
+          <!-- Log Counts -->
+          <div class="log-counts">
+            <span class="count-badge info" matTooltip="Info Logs">
+              <mat-icon>info</mat-icon>
+              {{ getLogCounts().info }}
+            </span>
+            <span class="count-badge warn" matTooltip="Warnungen">
+              <mat-icon>warning</mat-icon>
+              {{ getLogCounts().warn }}
+            </span>
+            <span class="count-badge error" matTooltip="Fehler">
+              <mat-icon>error</mat-icon>
+              {{ getLogCounts().error }}
+            </span>
+          </div>
+        </div>
+
+        <div class="toolbar-right">
+          <!-- Auto Scroll Toggle -->
+          <mat-slide-toggle
+            [(ngModel)]="autoScroll"
+            color="primary"
+            matTooltip="Automatisch nach unten scrollen">
+            Auto-Scroll
+          </mat-slide-toggle>
+
+          <!-- Auto Refresh Toggle -->
+          <mat-slide-toggle
+            [(ngModel)]="isAutoRefresh"
+            (change)="toggleAutoRefresh()"
+            color="primary"
+            matTooltip="Automatische Aktualisierung alle 3 Sekunden">
+            Live
+          </mat-slide-toggle>
+
+          <!-- Refresh Button -->
+          <button mat-icon-button
+                  (click)="refreshLogs()"
+                  [disabled]="isLoading"
+                  matTooltip="Logs aktualisieren">
+            <mat-icon [class.spinning]="isLoading">refresh</mat-icon>
+          </button>
+
+          <!-- Scroll to Top -->
+          <button mat-icon-button
+                  (click)="scrollToTop()"
+                  matTooltip="Nach oben scrollen">
+            <mat-icon>vertical_align_top</mat-icon>
+          </button>
+
+          <!-- Clear Logs -->
+          <button mat-icon-button
+                  (click)="clearLogs()"
+                  color="warn"
+                  matTooltip="Logs löschen">
+            <mat-icon>delete</mat-icon>
+          </button>
+        </div>
+      </div>
+
+      <!-- Log Entries -->
+      <div class="log-entries" #logContainer>
+        @if (filteredLogs.length === 0) {
+          <div class="no-logs">
+            <mat-icon>inbox</mat-icon>
+            <p>Keine Logs vorhanden</p>
+          </div>
+        } @else {
+          @for (log of filteredLogs; track log.timestamp + log.message) {
+            <div class="log-entry" [ngClass]="getLevelClass(log.level)">
+              <span class="log-time">{{ formatTimestamp(log.timestamp) }}</span>
+              <span class="log-level">
+                <mat-icon [inline]="true">{{ getLevelIcon(log.level) }}</mat-icon>
+                {{ log.level }}
+              </span>
+              <span class="log-logger">{{ log.logger }}</span>
+              <span class="log-message">{{ log.message }}</span>
+            </div>
+          }
+        }
+      </div>
+
+      <!-- Status Bar -->
+      <div class="status-bar">
+        <span>{{ filteredLogs.length }} von {{ logs.length }} Einträgen</span>
+        @if (isAutoRefresh) {
+          <span class="live-indicator">
+            <span class="pulse"></span>
+            Live
+          </span>
+        }
+      </div>
+    </mat-card-content>
+  </mat-card>
+</div>
