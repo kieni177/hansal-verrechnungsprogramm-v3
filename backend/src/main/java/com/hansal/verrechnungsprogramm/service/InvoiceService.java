@@ -295,13 +295,7 @@ public class InvoiceService {
                     .setTextAlignment(TextAlignment.RIGHT)
                     .setMarginBottom(20));
 
-            // Payment received message
-            document.add(new Paragraph("Betrag dankend erhalten!")
-                    .setFontSize(11)
-                    .setBold()
-                    .setItalic()
-                    .setTextAlignment(TextAlignment.RIGHT)
-                    .setMarginBottom(50));
+
 
             // Footer with bank details
             Table footerTable = new Table(1);
@@ -555,13 +549,7 @@ public class InvoiceService {
                 .setTextAlignment(TextAlignment.RIGHT)
                 .setMarginBottom(20));
 
-        // Payment received message
-        document.add(new Paragraph("Betrag dankend erhalten!")
-                .setFontSize(11)
-                .setBold()
-                .setItalic()
-                .setTextAlignment(TextAlignment.RIGHT)
-                .setMarginBottom(50));
+
 
         // Footer with bank details
         Table footerTable = new Table(1);
